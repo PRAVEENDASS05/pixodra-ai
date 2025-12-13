@@ -10,147 +10,192 @@
 
   <!-- jsPDF -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <!-- Custom Animations -->
+  <style>
+    @keyframes floatIn {
+      from { opacity: 0; transform: translateY(40px) scale(0.95); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    @keyframes glow {
+      0% { box-shadow: 0 0 10px rgba(59,130,246,0.2); }
+      50% { box-shadow: 0 0 25px rgba(59,130,246,0.6); }
+      100% { box-shadow: 0 0 10px rgba(59,130,246,0.2); }
+    }
+
+    @keyframes typingDots {
+      0% { content: ""; }
+      33% { content: "."; }
+      66% { content: ".."; }
+      100% { content: "..."; }
+    }
+
+    .card-animate {
+      animation: floatIn 0.9s ease-out;
+    }
+
+    .glow {
+      animation: glow 3s infinite;
+    }
+  </style>
 </head>
 
-<body class="bg-gradient-to-br from-gray-900 to-black text-white min-h-screen flex items-center justify-center">
+<body class="bg-gradient-to-br from-indigo-900 via-black to-purple-900 min-h-screen flex items-center justify-center text-white">
 
-  <div class="max-w-xl w-full p-8 bg-gray-900 rounded-2xl shadow-2xl">
+  <div class="max-w-xl w-full p-8 bg-black/60 backdrop-blur-xl rounded-3xl shadow-2xl card-animate glow">
 
-    <h1 class="text-4xl font-bold text-center mb-2">PIXODRA.AI</h1>
+    <h1 class="text-4xl font-extrabold text-center mb-1 tracking-wide">
+      PIXODRA<span class="text-blue-400">.AI</span>
+    </h1>
     <p class="text-center text-gray-400 mb-6">
-      Your friendly AI study companion
+      Your friendly AI study companion ✨
     </p>
 
     <!-- INPUT -->
     <textarea
       id="userInput"
       placeholder="Ask me anything..."
-      class="w-full p-4 rounded-xl bg-gray-800 border border-gray-700 focus:outline-none mb-4"
+      class="w-full p-4 rounded-xl bg-gray-900 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition mb-4"
       rows="4"
     ></textarea>
 
     <!-- LANGUAGE BUTTONS -->
     <div class="flex gap-2 mb-4">
-      <button onclick="setLanguage('english')" class="flex-1 bg-gray-700 py-2 rounded-lg text-sm">English</button>
-      <button onclick="setLanguage('tamil')" class="flex-1 bg-gray-700 py-2 rounded-lg text-sm">தமிழ்</button>
-      <button onclick="setLanguage('tanglish')" class="flex-1 bg-gray-700 py-2 rounded-lg text-sm">Tanglish</button>
+      <button onclick="setLanguage('english')" class="flex-1 btn">English</button>
+      <button onclick="setLanguage('tamil')" class="flex-1 btn">தமிழ்</button>
+      <button onclick="setLanguage('tanglish')" class="flex-1 btn">Tanglish</button>
     </div>
 
-    <!-- STUDY TOOLS (UPDATED) -->
+    <!-- STUDY TOOLS -->
     <div class="grid grid-cols-2 gap-2 mb-4">
-      <button onclick="useTool('summarize')" class="bg-green-600 py-2 rounded-lg text-sm">
-        Summarize
-      </button>
-      <button onclick="useTool('notes')" class="bg-orange-600 py-2 rounded-lg text-sm">
-        Short Notes
-      </button>
+      <button onclick="useTool('summarize')" class="tool bg-green-600">Summarize</button>
+      <button onclick="useTool('notes')" class="tool bg-orange-600">Short Notes</button>
     </div>
 
     <!-- ASK BUTTON -->
     <button
       onclick="askPixodra()"
-      class="w-full bg-white text-black py-3 rounded-xl font-semibold hover:bg-gray-200 transition"
+      class="w-full bg-gradient-to-r from-blue-500 to-indigo-600 py-3 rounded-xl font-bold hover:scale-105 active:scale-95 transition"
     >
-      Ask Pixodra
+      Ask Pixodra 🤖
     </button>
 
-    <!-- MAKE PDF BUTTON -->
+    <!-- PDF BUTTON -->
     <button
       onclick="makePDF()"
-      class="w-full mt-3 bg-blue-600 py-3 rounded-xl font-semibold hover:bg-blue-700 transition"
+      class="w-full mt-3 bg-purple-600 py-3 rounded-xl font-semibold hover:scale-105 active:scale-95 transition"
     >
-      Make PDF
+      📄 Make PDF
     </button>
 
     <!-- STATUS + RESPONSE -->
-    <p id="status" class="mt-3 text-sm text-gray-400">Ready 🙂</p>
-    <p id="response" class="mt-2 text-gray-300 text-sm whitespace-pre-line"></p>
+    <p id="status" class="mt-3 text-sm text-gray-400 text-center">Ready 🙂</p>
+    <p id="response" class="mt-3 text-gray-200 text-sm whitespace-pre-line"></p>
 
-    <!-- SCRIPT -->
-    <script>
-      const { jsPDF } = window.jspdf;
-
-      let selectedLanguage = "english";
-      let selectedTool = "";
-
-      function setLanguage(lang) {
-        selectedLanguage = lang;
-        document.getElementById("status").innerText =
-          "Language selected: " +
-          (lang === "tamil" ? "தமிழ்" : lang === "tanglish" ? "Tanglish" : "English");
-      }
-
-      function useTool(tool) {
-        selectedTool = tool;
-        document.getElementById("status").innerText =
-          "Study tool selected: " + (tool === "summarize" ? "Summarize" : "Short Notes");
-      }
-
-      async function askPixodra() {
-        const input = document.getElementById("userInput").value;
-        const responseBox = document.getElementById("response");
-        const statusBox = document.getElementById("status");
-
-        if (!input.trim()) {
-          responseBox.innerText = "Please type a question 🙂";
-          return;
-        }
-
-        let languageInstruction =
-          selectedLanguage === "tamil"
-            ? "Reply only in Tamil."
-            : selectedLanguage === "tanglish"
-            ? "Reply in Tanglish (Tamil + English mixed)."
-            : "Reply in simple English.";
-
-        let toolInstruction = "";
-        if (selectedTool === "summarize") toolInstruction = "Summarize this clearly in bullet points.";
-        if (selectedTool === "notes") toolInstruction = "Write short exam-oriented notes.";
-
-        responseBox.innerText = "Pixodra is thinking... 🤖";
-        statusBox.innerText = "Processing...";
-
-        try {
-          const res = await fetch("/api/ask", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              message: languageInstruction + " " + toolInstruction + " " + input
-            })
-          });
-
-          const data = await res.json();
-          responseBox.innerText = data.reply;
-
-          selectedTool = "";
-          statusBox.innerText = "Answer ready ✅";
-        } catch {
-          responseBox.innerText = "Something went wrong. Try again.";
-          statusBox.innerText = "Error ❌";
-        }
-      }
-
-      function makePDF() {
-        const text = document.getElementById("response").innerText;
-
-        if (!text.trim()) {
-          alert("No response to convert into PDF!");
-          return;
-        }
-
-        const pdf = new jsPDF();
-        const lines = pdf.splitTextToSize(text, 180);
-
-        pdf.text(lines, 10, 15);
-        pdf.save("Pixodra_Response.pdf");
-      }
-    </script>
-
-    <p class="text-xs text-gray-500 text-center mt-4">
+    <p class="text-xs text-gray-500 text-center mt-6">
       Built with ❤️ by Pixodra Technologies
     </p>
-
   </div>
+
+  <!-- SCRIPT -->
+  <script>
+    const { jsPDF } = window.jspdf;
+
+    let selectedLanguage = "english";
+    let selectedTool = "";
+
+    function setLanguage(lang) {
+      selectedLanguage = lang;
+      document.getElementById("status").innerText =
+        "Language: " + (lang === "tamil" ? "தமிழ்" : lang === "tanglish" ? "Tanglish" : "English");
+    }
+
+    function useTool(tool) {
+      selectedTool = tool;
+      document.getElementById("status").innerText =
+        "Tool: " + (tool === "summarize" ? "Summarize" : "Short Notes");
+    }
+
+    async function askPixodra() {
+      const input = document.getElementById("userInput").value;
+      const responseBox = document.getElementById("response");
+      const statusBox = document.getElementById("status");
+
+      if (!input.trim()) {
+        responseBox.innerText = "Please type a question 🙂";
+        return;
+      }
+
+      let lang =
+        selectedLanguage === "tamil"
+          ? "Reply only in Tamil."
+          : selectedLanguage === "tanglish"
+          ? "Reply in Tanglish (Tamil + English mixed)."
+          : "Reply in simple English.";
+
+      let tool =
+        selectedTool === "summarize"
+          ? "Summarize clearly in bullet points."
+          : selectedTool === "notes"
+          ? "Write short exam-oriented notes."
+          : "";
+
+      let dots = 0;
+      const thinking = setInterval(() => {
+        dots = (dots + 1) % 4;
+        statusBox.innerText = "Pixodra thinking" + ".".repeat(dots);
+      }, 400);
+
+      try {
+        const res = await fetch("/api/ask", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message: lang + " " + tool + " " + input })
+        });
+
+        const data = await res.json();
+        clearInterval(thinking);
+        statusBox.innerText = "Answer ready ✅";
+        responseBox.innerText = data.reply;
+        selectedTool = "";
+      } catch {
+        clearInterval(thinking);
+        statusBox.innerText = "Error ❌";
+        responseBox.innerText = "Something went wrong.";
+      }
+    }
+
+    function makePDF() {
+      const text = document.getElementById("response").innerText;
+      if (!text.trim()) return alert("No response to convert!");
+
+      const pdf = new jsPDF();
+      const lines = pdf.splitTextToSize(text, 180);
+      pdf.text(lines, 10, 15);
+      pdf.save("Pixodra_Response.pdf");
+    }
+  </script>
+
+  <!-- BUTTON STYLES -->
+  <style>
+    .btn {
+      background: #374151;
+      padding: 0.5rem;
+      border-radius: 0.75rem;
+      font-size: 0.875rem;
+      transition: all 0.2s;
+    }
+    .btn:hover { background: #4b5563; transform: scale(1.05); }
+
+    .tool {
+      padding: 0.5rem;
+      border-radius: 0.75rem;
+      font-size: 0.875rem;
+      transition: all 0.2s;
+    }
+    .tool:hover { transform: scale(1.05); filter: brightness(1.1); }
+  </style>
 
 </body>
 </html>
