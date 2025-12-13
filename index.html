@@ -11,33 +11,19 @@
   <!-- jsPDF -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
-  <!-- Custom Animations -->
+  <!-- Animations -->
   <style>
     @keyframes floatIn {
       from { opacity: 0; transform: translateY(40px) scale(0.95); }
       to { opacity: 1; transform: translateY(0) scale(1); }
     }
-
     @keyframes glow {
       0% { box-shadow: 0 0 10px rgba(59,130,246,0.2); }
       50% { box-shadow: 0 0 25px rgba(59,130,246,0.6); }
       100% { box-shadow: 0 0 10px rgba(59,130,246,0.2); }
     }
-
-    @keyframes typingDots {
-      0% { content: ""; }
-      33% { content: "."; }
-      66% { content: ".."; }
-      100% { content: "..."; }
-    }
-
-    .card-animate {
-      animation: floatIn 0.9s ease-out;
-    }
-
-    .glow {
-      animation: glow 3s infinite;
-    }
+    .card-animate { animation: floatIn 0.9s ease-out; }
+    .glow { animation: glow 3s infinite; }
   </style>
 </head>
 
@@ -45,7 +31,7 @@
 
   <div class="max-w-xl w-full p-8 bg-black/60 backdrop-blur-xl rounded-3xl shadow-2xl card-animate glow">
 
-    <h1 class="text-4xl font-extrabold text-center mb-1 tracking-wide">
+    <h1 class="text-4xl font-extrabold text-center mb-1">
       PIXODRA<span class="text-blue-400">.AI</span>
     </h1>
     <p class="text-center text-gray-400 mb-6">
@@ -56,15 +42,15 @@
     <textarea
       id="userInput"
       placeholder="Ask me anything..."
-      class="w-full p-4 rounded-xl bg-gray-900 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition mb-4"
+      class="w-full p-4 rounded-xl bg-gray-900 border border-gray-700 focus:ring-2 focus:ring-blue-500 transition mb-4"
       rows="4"
     ></textarea>
 
-    <!-- LANGUAGE BUTTONS -->
+    <!-- LANGUAGE -->
     <div class="flex gap-2 mb-4">
-      <button onclick="setLanguage('english')" class="flex-1 btn">English</button>
-      <button onclick="setLanguage('tamil')" class="flex-1 btn">தமிழ்</button>
-      <button onclick="setLanguage('tanglish')" class="flex-1 btn">Tanglish</button>
+      <button onclick="setLanguage('english')" class="btn">English</button>
+      <button onclick="setLanguage('tamil')" class="btn">தமிழ்</button>
+      <button onclick="setLanguage('tanglish')" class="btn">Tanglish</button>
     </div>
 
     <!-- STUDY TOOLS -->
@@ -73,19 +59,12 @@
       <button onclick="useTool('notes')" class="tool bg-orange-600">Short Notes</button>
     </div>
 
-    <!-- ASK BUTTON -->
-    <button
-      onclick="askPixodra()"
-      class="w-full bg-gradient-to-r from-blue-500 to-indigo-600 py-3 rounded-xl font-bold hover:scale-105 active:scale-95 transition"
-    >
+    <!-- ACTION BUTTONS -->
+    <button onclick="askPixodra()" class="action-btn">
       Ask Pixodra 🤖
     </button>
 
-    <!-- PDF BUTTON -->
-    <button
-      onclick="makePDF()"
-      class="w-full mt-3 bg-purple-600 py-3 rounded-xl font-semibold hover:scale-105 active:scale-95 transition"
-    >
+    <button onclick="makePDF()" class="pdf-btn">
       📄 Make PDF
     </button>
 
@@ -118,12 +97,20 @@
     }
 
     async function askPixodra() {
-      const input = document.getElementById("userInput").value;
+      const input = document.getElementById("userInput").value.trim();
       const responseBox = document.getElementById("response");
       const statusBox = document.getElementById("status");
 
-      if (!input.trim()) {
+      if (!input) {
         responseBox.innerText = "Please type a question 🙂";
+        return;
+      }
+
+      /* GREETING LOGIC */
+      const greetings = ["hi", "hello", "hey"];
+      if (greetings.includes(input.toLowerCase())) {
+        responseBox.innerText = "Vanakkam 😊 Ungaluku enna vendum?";
+        statusBox.innerText = "Ready 🙂";
         return;
       }
 
@@ -151,7 +138,9 @@
         const res = await fetch("/api/ask", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ message: lang + " " + tool + " " + input })
+          body: JSON.stringify({
+            message: lang + " " + tool + " " + input
+          })
         });
 
         const data = await res.json();
@@ -168,8 +157,10 @@
 
     function makePDF() {
       const text = document.getElementById("response").innerText;
-      if (!text.trim()) return alert("No response to convert!");
-
+      if (!text.trim()) {
+        alert("No response to convert!");
+        return;
+      }
       const pdf = new jsPDF();
       const lines = pdf.splitTextToSize(text, 180);
       pdf.text(lines, 10, 15);
@@ -180,6 +171,7 @@
   <!-- BUTTON STYLES -->
   <style>
     .btn {
+      flex: 1;
       background: #374151;
       padding: 0.5rem;
       border-radius: 0.75rem;
@@ -195,6 +187,27 @@
       transition: all 0.2s;
     }
     .tool:hover { transform: scale(1.05); filter: brightness(1.1); }
+
+    .action-btn {
+      width: 100%;
+      background: linear-gradient(to right, #3b82f6, #6366f1);
+      padding: 0.75rem;
+      border-radius: 0.75rem;
+      font-weight: bold;
+      transition: transform 0.2s;
+    }
+    .action-btn:hover { transform: scale(1.05); }
+
+    .pdf-btn {
+      width: 100%;
+      margin-top: 0.75rem;
+      background: #7c3aed;
+      padding: 0.75rem;
+      border-radius: 0.75rem;
+      font-weight: 600;
+      transition: transform 0.2s;
+    }
+    .pdf-btn:hover { transform: scale(1.05); }
   </style>
 
 </body>
