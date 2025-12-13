@@ -12,60 +12,94 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
   <style>
-    .chat-container {
-      height: 420px;
-      overflow-y: auto;
+    .chat-scroll {
+      scrollbar-width: thin;
+      scrollbar-color: #6366f1 transparent;
+    }
+    .chat-scroll::-webkit-scrollbar {
+      width: 6px;
+    }
+    .chat-scroll::-webkit-scrollbar-thumb {
+      background: #6366f1;
+      border-radius: 10px;
+    }
+    .fade-in {
+      animation: fade 0.3s ease-in-out;
+    }
+    @keyframes fade {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
     }
   </style>
 </head>
 
-<body class="bg-gradient-to-br from-gray-900 via-black to-gray-900 min-h-screen flex items-center justify-center text-white">
+<body class="bg-gradient-to-br from-slate-900 via-gray-900 to-black min-h-screen flex items-center justify-center">
 
-  <div class="max-w-2xl w-full h-[90vh] bg-black/70 backdrop-blur-xl rounded-3xl shadow-2xl flex flex-col">
+  <!-- APP CONTAINER -->
+  <div class="w-full max-w-4xl h-[95vh] bg-[#0f172a]/90 backdrop-blur-xl rounded-3xl shadow-2xl flex flex-col overflow-hidden">
 
     <!-- HEADER -->
-    <div class="p-4 border-b border-gray-700 text-center">
-      <h1 class="text-2xl font-bold">PIXODRA<span class="text-blue-400">.AI</span></h1>
-      <p class="text-xs text-gray-400">Your friendly AI study companion</p>
-    </div>
+    <header class="flex items-center justify-between px-6 py-4 border-b border-white/10">
+      <div>
+        <h1 class="text-xl font-bold text-white tracking-wide">
+          PIXODRA<span class="text-indigo-400">.AI</span>
+        </h1>
+        <p class="text-xs text-gray-400">Your friendly AI study companion</p>
+      </div>
+      <span class="text-xs text-gray-500">Beta</span>
+    </header>
 
-    <!-- CHAT -->
-    <div id="chat" class="chat-container flex-1 p-4 space-y-4"></div>
+    <!-- CHAT AREA -->
+    <main id="chat"
+      class="flex-1 px-4 py-6 space-y-4 overflow-y-auto chat-scroll">
+    </main>
 
     <!-- CONTROLS -->
-    <div class="p-3 border-t border-gray-700 space-y-2">
+    <footer class="border-t border-white/10 p-4 space-y-3">
 
-      <!-- LANGUAGE -->
-      <div class="flex gap-2">
-        <button onclick="setLanguage('english')" class="btn">English</button>
-        <button onclick="setLanguage('tamil')" class="btn">தமிழ்</button>
-        <button onclick="setLanguage('tanglish')" class="btn">Tanglish</button>
+      <!-- OPTIONS -->
+      <div class="flex flex-wrap gap-2">
+        <button onclick="setLanguage('english')" class="opt-btn">English</button>
+        <button onclick="setLanguage('tamil')" class="opt-btn">தமிழ்</button>
+        <button onclick="setLanguage('tanglish')" class="opt-btn">Tanglish</button>
+
+        <button onclick="useTool('summarize')" class="opt-btn bg-emerald-600/20 text-emerald-400">
+          Summarize
+        </button>
+        <button onclick="useTool('notes')" class="opt-btn bg-amber-600/20 text-amber-400">
+          Short Notes
+        </button>
+        <button onclick="makePDF()" class="opt-btn bg-indigo-600/20 text-indigo-400">
+          Make PDF
+        </button>
       </div>
 
-      <!-- TOOLS -->
-      <div class="flex gap-2">
-        <button onclick="useTool('summarize')" class="tool bg-green-600">Summarize</button>
-        <button onclick="useTool('notes')" class="tool bg-orange-600">Short Notes</button>
-        <button onclick="makePDF()" class="tool bg-purple-600">Make PDF</button>
-      </div>
-
-      <!-- INPUT -->
-      <div class="flex gap-2">
+      <!-- INPUT BAR -->
+      <div class="flex items-end gap-3">
         <textarea
           id="userInput"
           rows="1"
-          placeholder="Message Pixodra..."
-          class="flex-1 p-3 rounded-xl bg-gray-900 border border-gray-700 resize-none"
+          placeholder="Message Pixodra…"
+          class="flex-1 resize-none bg-[#020617] text-white p-3 rounded-xl border border-white/10 focus:outline-none focus:ring-2 focus:ring-indigo-500"
         ></textarea>
-        <button onclick="askPixodra()" class="send-btn">Send</button>
+
+        <button onclick="askPixodra()"
+          class="bg-indigo-600 hover:bg-indigo-500 active:scale-95 transition px-5 py-3 rounded-xl font-semibold text-white">
+          Send
+        </button>
       </div>
-    </div>
+
+      <p class="text-[10px] text-gray-500 text-center">
+        Built with ❤️ by Pixodra Technologies
+      </p>
+    </footer>
+
   </div>
 
 <script>
   const { jsPDF } = window.jspdf;
 
-  /* ---------- Anonymous User ID ---------- */
+  // Anonymous User ID
   let userId = localStorage.getItem("pixodra_user_id");
   if (!userId) {
     userId = "user_" + Math.random().toString(36).substring(2, 10);
@@ -90,8 +124,8 @@
 
     bubble.className =
       sender === "user"
-        ? "ml-auto max-w-[80%] bg-blue-600 p-3 rounded-2xl rounded-br-sm text-sm"
-        : "mr-auto max-w-[80%] bg-gray-800 p-3 rounded-2xl rounded-bl-sm text-sm";
+        ? "ml-auto max-w-[80%] bg-indigo-600 text-white p-4 rounded-2xl rounded-br-sm text-sm fade-in"
+        : "mr-auto max-w-[80%] bg-white/10 text-gray-200 p-4 rounded-2xl rounded-bl-sm text-sm fade-in";
 
     bubble.innerText = text;
     chat.appendChild(bubble);
@@ -127,7 +161,7 @@
         ? "Write short exam-oriented notes."
         : "";
 
-    addMessage("Pixodra is thinking...", "ai");
+    addMessage("Pixodra is thinking… 🤖");
 
     try {
       const res = await fetch("/api/ask", {
@@ -135,7 +169,7 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           message: lang + " " + tool + " " + input,
-          userId: userId,
+          userId,
           language: selectedLanguage,
           tool: selectedTool,
           timestamp: new Date().toISOString()
@@ -164,24 +198,17 @@
 </script>
 
 <style>
-  .btn {
-    flex: 1;
-    background: #374151;
-    padding: 0.4rem;
-    border-radius: 0.6rem;
-    font-size: 0.75rem;
+  .opt-btn {
+    padding: 0.4rem 0.75rem;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.05);
+    color: #c7d2fe;
+    font-size: 0.7rem;
+    transition: all 0.2s ease;
   }
-  .tool {
-    flex: 1;
-    padding: 0.4rem;
-    border-radius: 0.6rem;
-    font-size: 0.75rem;
-  }
-  .send-btn {
-    background: #2563eb;
-    padding: 0.6rem 1rem;
-    border-radius: 0.8rem;
-    font-weight: bold;
+  .opt-btn:hover {
+    background: rgba(255,255,255,0.12);
+    transform: translateY(-1px);
   }
 </style>
 
