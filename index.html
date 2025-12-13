@@ -21,12 +21,43 @@
       class="w-full p-4 rounded-xl bg-gray-800 border border-gray-700 focus:outline-none mb-4"
       rows="4"
     ></textarea>
+    
+<button
+  onclick="askPixodra()"
+  class="w-full bg-white text-black py-3 rounded-xl font-semibold hover:bg-gray-200 transition"
+>
+  Ask Pixodra
+</button>
+<p id="response" class="mt-4 text-gray-300 text-sm"></p>
 
-    <button
-      class="w-full bg-white text-black py-3 rounded-xl font-semibold hover:bg-gray-200 transition"
-    >
-      Ask Pixodra
-    </button>
+<script>
+  async function askPixodra() {
+    const input = document.getElementById("userInput").value;
+    const responseBox = document.getElementById("response");
+
+    if (!input.trim()) {
+      responseBox.innerText = "Please type a question 🙂";
+      return;
+    }
+
+    responseBox.innerText = "Pixodra is thinking... 🤖";
+
+    try {
+      const res = await fetch("/api/ask", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ message: input })
+      });
+
+      const data = await res.json();
+      responseBox.innerText = data.reply;
+    } catch (err) {
+      responseBox.innerText = "Something went wrong. Try again.";
+    }
+  }
+</script>
 
     <p class="text-xs text-gray-500 text-center mt-4">
       Build by Pixodra Technologies
