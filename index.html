@@ -12,13 +12,19 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
   <style>
-    .chat-scroll::-webkit-scrollbar { width: 6px; }
+    .chat-scroll {
+      scrollbar-width: thin;
+      scrollbar-color: #6366f1 transparent;
+    }
+    .chat-scroll::-webkit-scrollbar {
+      width: 6px;
+    }
     .chat-scroll::-webkit-scrollbar-thumb {
       background: #6366f1;
       border-radius: 10px;
     }
     .fade-in {
-      animation: fade 0.3s ease-in-out;
+      animation: fade 0.25s ease-in-out;
     }
     @keyframes fade {
       from { opacity: 0; transform: translateY(6px); }
@@ -29,20 +35,21 @@
 
 <body class="bg-gradient-to-br from-slate-900 via-gray-900 to-black min-h-screen flex items-center justify-center">
 
+  <!-- APP CONTAINER -->
   <div class="w-full max-w-4xl h-[95vh] bg-[#0f172a]/90 backdrop-blur-xl rounded-3xl shadow-2xl flex flex-col overflow-hidden">
 
     <!-- HEADER -->
     <header class="flex items-center justify-between px-6 py-4 border-b border-white/10">
       <div>
-        <h1 class="text-xl font-bold text-white">
+        <h1 class="text-xl font-bold text-white tracking-wide">
           PIXODRA<span class="text-indigo-400">.AI</span>
         </h1>
-        <p class="text-xs text-gray-400">Talk • Learn • Explore</p>
+        <p class="text-xs text-gray-400">Your friendly AI study companion</p>
       </div>
-      <span class="text-xs text-gray-500">Voice Enabled</span>
+      <span class="text-xs text-gray-500">Beta</span>
     </header>
 
-    <!-- CHAT -->
+    <!-- CHAT AREA -->
     <main id="chat" class="flex-1 px-4 py-6 space-y-4 overflow-y-auto chat-scroll"></main>
 
     <!-- CONTROLS -->
@@ -54,29 +61,28 @@
         <button onclick="setLanguage('tamil')" class="opt-btn">தமிழ்</button>
         <button onclick="setLanguage('tanglish')" class="opt-btn">Tanglish</button>
 
-        <button onclick="useTool('summarize')" class="opt-btn bg-emerald-600/20 text-emerald-400">Summarize</button>
-        <button onclick="useTool('notes')" class="opt-btn bg-amber-600/20 text-amber-400">Short Notes</button>
-        <button onclick="makePDF()" class="opt-btn bg-indigo-600/20 text-indigo-400">Make PDF</button>
+        <button onclick="useTool('summarize')" class="opt-btn bg-emerald-600/20 text-emerald-400">
+          Summarize
+        </button>
+        <button onclick="useTool('notes')" class="opt-btn bg-amber-600/20 text-amber-400">
+          Short Notes
+        </button>
+        <button onclick="makePDF()" class="opt-btn bg-indigo-600/20 text-indigo-400">
+          Make PDF
+        </button>
       </div>
 
       <!-- INPUT BAR -->
-      <div class="flex items-end gap-2">
+      <div class="flex items-end gap-3">
         <textarea
           id="userInput"
           rows="1"
-          placeholder="Message Pixodra… or use voice 🎤"
-          class="flex-1 resize-none bg-[#020617] text-white p-3 rounded-xl border border-white/10 focus:ring-2 focus:ring-indigo-500"
+          placeholder="Message Pixodra…"
+          class="flex-1 resize-none bg-[#020617] text-white p-3 rounded-xl border border-white/10 focus:outline-none focus:ring-2 focus:ring-indigo-500"
         ></textarea>
 
-        <!-- VOICE INPUT -->
-        <button onclick="startVoiceInput()"
-          class="bg-rose-600 hover:bg-rose-500 px-3 py-3 rounded-xl">
-          🎤
-        </button>
-
-        <!-- SEND -->
         <button onclick="askPixodra()"
-          class="bg-indigo-600 hover:bg-indigo-500 px-5 py-3 rounded-xl font-semibold text-white">
+          class="bg-indigo-600 hover:bg-indigo-500 active:scale-95 transition px-5 py-3 rounded-xl font-semibold text-white">
           Send
         </button>
       </div>
@@ -85,12 +91,13 @@
         Built with ❤️ by Pixodra Technologies
       </p>
     </footer>
+
   </div>
 
 <script>
   const { jsPDF } = window.jspdf;
 
-  // Anonymous user ID
+  // Anonymous User ID
   let userId = localStorage.getItem("pixodra_user_id");
   if (!userId) {
     userId = "user_" + Math.random().toString(36).substring(2, 10);
@@ -101,8 +108,13 @@
   let selectedTool = "";
   let lastAnswer = "";
 
-  function setLanguage(lang) { selectedLanguage = lang; }
-  function useTool(tool) { selectedTool = tool; }
+  function setLanguage(lang) {
+    selectedLanguage = lang;
+  }
+
+  function useTool(tool) {
+    selectedTool = tool;
+  }
 
   function addMessage(text, sender = "ai") {
     const chat = document.getElementById("chat");
@@ -124,11 +136,11 @@
     inputBox.value = "";
 
     if (!input) return;
+
     addMessage(input, "user");
 
     // Greeting shortcut
     if (["hi", "hello", "hey"].includes(input.toLowerCase())) {
-      speak("Vanakkam Ungaluku Enna Vendum");
       addMessage("Vanakkam 😊 Ungaluku enna vendum?");
       return;
     }
@@ -155,14 +167,16 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           message: lang + " " + tool + " " + input,
-          userId
+          userId,
+          language: selectedLanguage,
+          tool: selectedTool,
+          timestamp: new Date().toISOString()
         })
       });
 
       const data = await res.json();
       document.getElementById("chat").lastChild.remove();
       addMessage(data.reply);
-      speak(data.reply);
       lastAnswer = data.reply;
       selectedTool = "";
     } catch {
@@ -171,37 +185,11 @@
     }
   }
 
-  /* 🎤 VOICE INPUT */
-  function startVoiceInput() {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-      alert("Voice input not supported in this browser.");
+  function makePDF() {
+    if (!lastAnswer) {
+      alert("No response to convert!");
       return;
     }
-
-    const recognition = new SpeechRecognition();
-    recognition.lang =
-      selectedLanguage === "tamil" ? "ta-IN" :
-      selectedLanguage === "tanglish" ? "en-IN" : "en-US";
-
-    recognition.start();
-    recognition.onresult = (event) => {
-      document.getElementById("userInput").value = event.results[0][0].transcript;
-    };
-  }
-
-  /* 🔊 VOICE OUTPUT */
-  function speak(text) {
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang =
-      selectedLanguage === "tamil" ? "ta-IN" :
-      selectedLanguage === "tanglish" ? "en-IN" : "en-US";
-    speechSynthesis.speak(utterance);
-  }
-
-  /* 📄 PDF */
-  function makePDF() {
-    if (!lastAnswer) return alert("No response to convert!");
     const pdf = new jsPDF();
     const lines = pdf.splitTextToSize(lastAnswer, 180);
     pdf.text(lines, 10, 15);
@@ -213,13 +201,13 @@
   .opt-btn {
     padding: 0.4rem 0.75rem;
     border-radius: 999px;
-    background: rgba(255,255,255,0.06);
+    background: rgba(255,255,255,0.05);
     color: #c7d2fe;
     font-size: 0.7rem;
-    transition: all 0.2s;
+    transition: all 0.2s ease;
   }
   .opt-btn:hover {
-    background: rgba(255,255,255,0.15);
+    background: rgba(255,255,255,0.12);
     transform: translateY(-1px);
   }
 </style>
