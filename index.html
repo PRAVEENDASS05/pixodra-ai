@@ -13,7 +13,7 @@
 
     <h1 class="text-4xl font-bold text-center mb-2">PIXODRA.AI</h1>
     <p class="text-center text-gray-400 mb-6">
-      Your friendly AI for learning & Tamil Nadu students
+      Your friendly AI study companion for Tamil Nadu students
     </p>
 
     <!-- INPUT -->
@@ -24,7 +24,7 @@
       rows="4"
     ></textarea>
 
-    <!-- LANGUAGE SELECTION -->
+    <!-- LANGUAGE BUTTONS -->
     <div class="flex gap-2 mb-4">
       <button onclick="setLanguage('english')" class="flex-1 bg-gray-700 py-2 rounded-lg text-sm">English</button>
       <button onclick="setLanguage('tamil')" class="flex-1 bg-gray-700 py-2 rounded-lg text-sm">தமிழ்</button>
@@ -47,8 +47,9 @@
       Ask Pixodra
     </button>
 
-    <!-- RESPONSE -->
-    <p id="response" class="mt-4 text-gray-300 text-sm"></p>
+    <!-- STATUS + RESPONSE -->
+    <p id="status" class="mt-3 text-sm text-gray-400">Ready 🙂</p>
+    <p id="response" class="mt-2 text-gray-300 text-sm"></p>
 
     <!-- SCRIPT -->
     <script>
@@ -57,42 +58,49 @@
 
       function setLanguage(lang) {
         selectedLanguage = lang;
+        document.getElementById("status").innerText =
+          "Language selected: " +
+          (lang === "tamil" ? "தமிழ்" : lang === "tanglish" ? "Tanglish" : "English");
       }
 
       function useTool(tool) {
         selectedTool = tool;
+        let toolName = "";
+
+        if (tool === "explain") toolName = "Explain Concept";
+        if (tool === "summarize") toolName = "Summarize";
+        if (tool === "mcq") toolName = "MCQs";
+        if (tool === "notes") toolName = "Short Notes";
+
+        document.getElementById("status").innerText =
+          "Study tool selected: " + toolName;
       }
 
       async function askPixodra() {
         const input = document.getElementById("userInput").value;
         const responseBox = document.getElementById("response");
+        const statusBox = document.getElementById("status");
 
         if (!input.trim()) {
           responseBox.innerText = "Please type a question 🙂";
           return;
         }
 
-        let languageInstruction = "";
-        if (selectedLanguage === "tamil") {
-          languageInstruction = "Reply only in Tamil.";
-        } else if (selectedLanguage === "tanglish") {
-          languageInstruction = "Reply in Tanglish (Tamil + English mixed).";
-        } else {
-          languageInstruction = "Reply in simple English.";
-        }
+        let languageInstruction =
+          selectedLanguage === "tamil"
+            ? "Reply only in Tamil."
+            : selectedLanguage === "tanglish"
+            ? "Reply in Tanglish (Tamil + English mixed)."
+            : "Reply in simple English.";
 
         let toolInstruction = "";
-        if (selectedTool === "explain") {
-          toolInstruction = "Explain the concept in a simple student-friendly way.";
-        } else if (selectedTool === "summarize") {
-          toolInstruction = "Summarize this clearly in bullet points.";
-        } else if (selectedTool === "mcq") {
-          toolInstruction = "Create 5 MCQs with answers.";
-        } else if (selectedTool === "notes") {
-          toolInstruction = "Write short notes suitable for exams.";
-        }
+        if (selectedTool === "explain") toolInstruction = "Explain the concept clearly for a student.";
+        if (selectedTool === "summarize") toolInstruction = "Summarize this in clear bullet points.";
+        if (selectedTool === "mcq") toolInstruction = "Create 5 MCQs with answers.";
+        if (selectedTool === "notes") toolInstruction = "Write short exam-oriented notes.";
 
         responseBox.innerText = "Pixodra is thinking... 🤖";
+        statusBox.innerText = "Processing...";
 
         try {
           const res = await fetch("/api/ask", {
@@ -105,14 +113,19 @@
 
           const data = await res.json();
           responseBox.innerText = data.reply;
-        } catch (err) {
+
+          // reset tool after use
+          selectedTool = "";
+          statusBox.innerText = "Ready for next question 🙂";
+        } catch {
           responseBox.innerText = "Something went wrong. Try again.";
+          statusBox.innerText = "Error ❌";
         }
       }
     </script>
 
     <p class="text-xs text-gray-500 text-center mt-4">
-      Built by Pixodra Technologies ❤️
+      Built with ❤️ by Pixodra Technologies
     </p>
 
   </div>
