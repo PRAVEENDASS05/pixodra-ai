@@ -1,198 +1,132 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Pixodra.ai</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
+  <meta charset="UTF-8">
+  <title>Tamil Nadu Symposium Finder | Pixodra</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
-  <style>
-    .chat-scroll::-webkit-scrollbar { width: 6px; }
-    .chat-scroll::-webkit-scrollbar-thumb {
-      background: #6366f1;
-      border-radius: 10px;
-    }
-    .fade { animation: fade 0.25s ease-in-out; }
-    @keyframes fade {
-      from { opacity: 0; transform: translateY(6px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-  </style>
 </head>
 
-<body class="bg-gradient-to-br from-slate-900 via-gray-900 to-black min-h-screen flex items-center justify-center">
+<body class="bg-gradient-to-br from-slate-900 via-gray-900 to-black min-h-screen text-white flex items-center justify-center">
 
-<div class="w-full max-w-4xl h-[95vh] bg-[#0f172a]/90 backdrop-blur-xl rounded-3xl shadow-2xl flex flex-col overflow-hidden">
+<div class="w-full max-w-3xl bg-[#0f172a]/90 backdrop-blur-xl rounded-3xl shadow-2xl p-6">
 
   <!-- HEADER -->
-  <header class="px-6 py-4 border-b border-white/10">
-    <h1 class="text-xl font-bold text-white">
-      PIXODRA<span class="text-indigo-400">.AI</span>
+  <div class="flex items-center justify-between mb-6">
+    <h1 class="text-xl font-bold">
+      🎓 Symposium Finder
+      <span class="text-indigo-400 text-sm block">Tamil Nadu</span>
     </h1>
-    <p class="text-xs text-gray-400">AI + Tamil Nadu Symposium Finder</p>
-  </header>
 
-  <!-- CHAT -->
-  <main id="chat" class="flex-1 px-4 py-6 space-y-4 overflow-y-auto chat-scroll"></main>
+    <button
+      onclick="window.location.href='index.html'"
+      class="text-sm text-indigo-400 hover:underline">
+      ← Back to Pixodra
+    </button>
+  </div>
 
-  <!-- CONTROLS -->
-  <footer class="border-t border-white/10 p-4 space-y-3">
+  <!-- DISTRICT SELECT -->
+  <div class="mb-6">
+    <label class="block text-sm text-gray-300 mb-2">
+      Select District
+    </label>
 
-    <!-- OPTIONS -->
-    <div class="flex flex-wrap gap-2">
-      <button onclick="setLanguage('english')" class="opt-btn">English</button>
-      <button onclick="setLanguage('tamil')" class="opt-btn">தமிழ்</button>
-      <button onclick="setLanguage('tanglish')" class="opt-btn">Tanglish</button>
+    <select
+      id="districtSelect"
+      onchange="showEvents()"
+      class="w-full bg-[#020617] p-3 rounded-xl border border-white/10 focus:ring-2 focus:ring-indigo-500">
+      
+      <option value="">-- Select District --</option>
+      <option value="chennai">Chennai</option>
+      <option value="coimbatore">Coimbatore</option>
+      <option value="madurai">Madurai</option>
+      <option value="salem">Salem</option>
+      <option value="tiruchirappalli">Tiruchirappalli</option>
+    </select>
+  </div>
 
-      <button onclick="useTool('summarize')" class="opt-btn bg-emerald-600/20 text-emerald-400">Summarize</button>
-      <button onclick="useTool('notes')" class="opt-btn bg-amber-600/20 text-amber-400">Short Notes</button>
+  <!-- RESULTS -->
+  <div id="results" class="space-y-4"></div>
 
-      <button onclick="showSymposiums()" class="opt-btn bg-indigo-600/20 text-indigo-400">
-        🎓 Symposium Finder
-      </button>
-
-      <button onclick="makePDF()" class="opt-btn bg-purple-600/20 text-purple-400">
-        Make PDF
-      </button>
-    </div>
-
-    <!-- INPUT -->
-    <div class="flex gap-3">
-      <textarea
-        id="userInput"
-        rows="1"
-        placeholder="Ask Pixodra or search symposiums..."
-        class="flex-1 resize-none bg-[#020617] text-white p-3 rounded-xl border border-white/10 focus:ring-2 focus:ring-indigo-500"
-      ></textarea>
-
-      <button onclick="askPixodra()"
-        class="bg-indigo-600 hover:bg-indigo-500 px-5 py-3 rounded-xl font-semibold text-white">
-        Send
-      </button>
-    </div>
-
-    <p class="text-[10px] text-gray-500 text-center">
-      Built with ❤️ by Pixodra Technologies
-    </p>
-  </footer>
 </div>
 
 <script>
-  const { jsPDF } = window.jspdf;
+  const symposiumData = {
+    chennai: [
+      {
+        college: "CEG Anna University",
+        event: "Techofes",
+        contact: "+91 98765 43210"
+      },
+      {
+        college: "SSN College of Engineering",
+        event: "Invente",
+        contact: "invente@ssn.edu.in"
+      }
+    ],
+    coimbatore: [
+      {
+        college: "PSG College of Technology",
+        event: "Kriya",
+        contact: "+91 90000 11111"
+      },
+      {
+        college: "Kumaraguru College of Technology",
+        event: "Yugam",
+        contact: "yugam@kct.ac.in"
+      }
+    ],
+    madurai: [
+      {
+        college: "Thiagarajar College of Engineering",
+        event: "TechXplore",
+        contact: "+91 95555 22222"
+      }
+    ],
+    salem: [
+      {
+        college: "Sona College of Technology",
+        event: "Sona Fest",
+        contact: "sonafest@sona.edu"
+      }
+    ],
+    tiruchirappalli: [
+      {
+        college: "NIT Trichy",
+        event: "Festember",
+        contact: "festember@nitt.edu"
+      }
+    ]
+  };
 
-  let selectedLanguage = "english";
-  let selectedTool = "";
-  let lastAnswer = "";
+  function showEvents() {
+    const district = document.getElementById("districtSelect").value;
+    const results = document.getElementById("results");
+    results.innerHTML = "";
 
-  const symposiums = [
-    { college: "CEG Anna University", event: "Techofes", dept: "CSE / IT", city: "Chennai" },
-    { college: "PSG Tech", event: "Kriya", dept: "Mechanical", city: "Coimbatore" },
-    { college: "SSN College", event: "Invente", dept: "CSE / AI", city: "Chennai" },
-    { college: "KCT", event: "Yugam", dept: "All Departments", city: "Coimbatore" },
-    { college: "Thiagarajar College", event: "TechXplore", dept: "EEE / ECE", city: "Madurai" },
-    { college: "SRM University", event: "Aaruush", dept: "All Departments", city: "Kanchipuram" }
-  ];
+    if (!district) return;
 
-  function setLanguage(lang) { selectedLanguage = lang; }
-  function useTool(tool) { selectedTool = tool; }
+    symposiumData[district].forEach(item => {
+      const card = document.createElement("div");
+      card.className =
+        "bg-white/10 p-4 rounded-2xl border border-white/10";
 
-  function addMessage(text, sender = "ai") {
-    const chat = document.getElementById("chat");
-    const div = document.createElement("div");
+      card.innerHTML = `
+        <h2 class="text-lg font-semibold text-indigo-300">
+          ${item.college}
+        </h2>
+        <p class="text-sm text-gray-200 mt-1">
+          🎉 Event: <strong>${item.event}</strong>
+        </p>
+        <p class="text-sm text-gray-400 mt-1">
+          📞 Contact: ${item.contact}
+        </p>
+      `;
 
-    div.className =
-      sender === "user"
-        ? "ml-auto max-w-[80%] bg-indigo-600 text-white p-4 rounded-2xl rounded-br-sm text-sm fade"
-        : "mr-auto max-w-[80%] bg-white/10 text-gray-200 p-4 rounded-2xl rounded-bl-sm text-sm fade";
-
-    div.innerText = text;
-    chat.appendChild(div);
-    chat.scrollTop = chat.scrollHeight;
-  }
-
-  function showSymposiums() {
-    addMessage("🎓 Tamil Nadu Symposiums:\n");
-
-    symposiums.forEach(s => {
-      addMessage(
-        `🏫 ${s.college}\n📌 ${s.event}\n🎓 ${s.dept}\n📍 ${s.city}`,
-        "ai"
-      );
+      results.appendChild(card);
     });
-
-    lastAnswer = symposiums.map(s =>
-      `${s.college} - ${s.event} (${s.city})`
-    ).join("\n");
-  }
-
-  async function askPixodra() {
-    const inputBox = document.getElementById("userInput");
-    const input = inputBox.value.trim();
-    inputBox.value = "";
-    if (!input) return;
-
-    addMessage(input, "user");
-
-    if (["hi", "hello", "hey"].includes(input.toLowerCase())) {
-      addMessage("Vanakkam 😊 Ungaluku enna vendum?");
-      return;
-    }
-
-    let lang =
-      selectedLanguage === "tamil" ? "Reply only in Tamil." :
-      selectedLanguage === "tanglish" ? "Reply in Tanglish." :
-      "Reply in simple English.";
-
-    let tool =
-      selectedTool === "summarize" ? "Summarize in points." :
-      selectedTool === "notes" ? "Write short exam notes." : "";
-
-    addMessage("Pixodra is thinking… 🤖");
-
-    try {
-      const res = await fetch("/api/ask", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: lang + " " + tool + " " + input })
-      });
-
-      const data = await res.json();
-      document.getElementById("chat").lastChild.remove();
-      addMessage(data.reply);
-      lastAnswer = data.reply;
-      selectedTool = "";
-    } catch {
-      document.getElementById("chat").lastChild.remove();
-      addMessage("Something went wrong 😕");
-    }
-  }
-
-  function makePDF() {
-    if (!lastAnswer) return alert("No content to convert!");
-    const pdf = new jsPDF();
-    const lines = pdf.splitTextToSize(lastAnswer, 180);
-    pdf.text(lines, 10, 15);
-    pdf.save("Pixodra_Content.pdf");
   }
 </script>
 
-<style>
-  .opt-btn {
-    padding: 0.4rem 0.75rem;
-    border-radius: 999px;
-    background: rgba(255,255,255,0.05);
-    color: #c7d2fe;
-    font-size: 0.7rem;
-    transition: all 0.2s;
-  }
-  .opt-btn:hover {
-    background: rgba(255,255,255,0.15);
-    transform: translateY(-1px);
-  }
-</style>
-
 </body>
 </html>
-
