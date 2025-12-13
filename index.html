@@ -6,61 +6,113 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
+
 <body class="bg-gradient-to-br from-gray-900 to-black text-white min-h-screen flex items-center justify-center">
 
   <div class="max-w-xl w-full p-8 bg-gray-900 rounded-2xl shadow-2xl">
-    
+
     <h1 class="text-4xl font-bold text-center mb-2">PIXODRA.AI</h1>
     <p class="text-center text-gray-400 mb-6">
-      Your friendly AI for learning, questions & Tamil Nadu symposiums
+      Your friendly AI for learning & Tamil Nadu students
     </p>
 
+    <!-- INPUT -->
     <textarea
       id="userInput"
       placeholder="Ask me anything..."
       class="w-full p-4 rounded-xl bg-gray-800 border border-gray-700 focus:outline-none mb-4"
       rows="4"
     ></textarea>
-    
-<button
-  onclick="askPixodra()"
-  class="w-full bg-white text-black py-3 rounded-xl font-semibold hover:bg-gray-200 transition"
->
-  Ask Pixodra
-</button>
-<p id="response" class="mt-4 text-gray-300 text-sm"></p>
 
-<script>
-  async function askPixodra() {
-    const input = document.getElementById("userInput").value;
-    const responseBox = document.getElementById("response");
+    <!-- LANGUAGE SELECTION -->
+    <div class="flex gap-2 mb-4">
+      <button onclick="setLanguage('english')" class="flex-1 bg-gray-700 py-2 rounded-lg text-sm">English</button>
+      <button onclick="setLanguage('tamil')" class="flex-1 bg-gray-700 py-2 rounded-lg text-sm">தமிழ்</button>
+      <button onclick="setLanguage('tanglish')" class="flex-1 bg-gray-700 py-2 rounded-lg text-sm">Tanglish</button>
+    </div>
 
-    if (!input.trim()) {
-      responseBox.innerText = "Please type a question 🙂";
-      return;
-    }
+    <!-- STUDY TOOLS -->
+    <div class="grid grid-cols-2 gap-2 mb-4">
+      <button onclick="useTool('explain')" class="bg-blue-600 py-2 rounded-lg text-sm">Explain Concept</button>
+      <button onclick="useTool('summarize')" class="bg-green-600 py-2 rounded-lg text-sm">Summarize</button>
+      <button onclick="useTool('mcq')" class="bg-purple-600 py-2 rounded-lg text-sm">MCQs</button>
+      <button onclick="useTool('notes')" class="bg-orange-600 py-2 rounded-lg text-sm">Short Notes</button>
+    </div>
 
-    responseBox.innerText = "Pixodra is thinking... 🤖";
+    <!-- ASK BUTTON -->
+    <button
+      onclick="askPixodra()"
+      class="w-full bg-white text-black py-3 rounded-xl font-semibold hover:bg-gray-200 transition"
+    >
+      Ask Pixodra
+    </button>
 
-    try {
-      const res = await fetch("/api/ask", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ message: input })
-      });
+    <!-- RESPONSE -->
+    <p id="response" class="mt-4 text-gray-300 text-sm"></p>
 
-      const data = await res.json();
-      responseBox.innerText = data.reply;
-    } catch (err) {
-      responseBox.innerText = "Something went wrong. Try again.";
-    }
-  }
-</script>
+    <!-- SCRIPT -->
+    <script>
+      let selectedLanguage = "english";
+      let selectedTool = "";
+
+      function setLanguage(lang) {
+        selectedLanguage = lang;
+      }
+
+      function useTool(tool) {
+        selectedTool = tool;
+      }
+
+      async function askPixodra() {
+        const input = document.getElementById("userInput").value;
+        const responseBox = document.getElementById("response");
+
+        if (!input.trim()) {
+          responseBox.innerText = "Please type a question 🙂";
+          return;
+        }
+
+        let languageInstruction = "";
+        if (selectedLanguage === "tamil") {
+          languageInstruction = "Reply only in Tamil.";
+        } else if (selectedLanguage === "tanglish") {
+          languageInstruction = "Reply in Tanglish (Tamil + English mixed).";
+        } else {
+          languageInstruction = "Reply in simple English.";
+        }
+
+        let toolInstruction = "";
+        if (selectedTool === "explain") {
+          toolInstruction = "Explain the concept in a simple student-friendly way.";
+        } else if (selectedTool === "summarize") {
+          toolInstruction = "Summarize this clearly in bullet points.";
+        } else if (selectedTool === "mcq") {
+          toolInstruction = "Create 5 MCQs with answers.";
+        } else if (selectedTool === "notes") {
+          toolInstruction = "Write short notes suitable for exams.";
+        }
+
+        responseBox.innerText = "Pixodra is thinking... 🤖";
+
+        try {
+          const res = await fetch("/api/ask", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              message: languageInstruction + " " + toolInstruction + " " + input
+            })
+          });
+
+          const data = await res.json();
+          responseBox.innerText = data.reply;
+        } catch (err) {
+          responseBox.innerText = "Something went wrong. Try again.";
+        }
+      }
+    </script>
 
     <p class="text-xs text-gray-500 text-center mt-4">
-      Build by Pixodra Technologies
+      Built by Pixodra Technologies ❤️
     </p>
 
   </div>
