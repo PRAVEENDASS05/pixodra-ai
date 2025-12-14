@@ -5,28 +5,23 @@
 <title>Pixodra.ai</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<!-- Tailwind -->
 <script src="https://cdn.tailwindcss.com"></script>
 
-<!-- Fonts -->
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Noto+Sans+Tamil&display=swap" rel="stylesheet">
 
-<!-- Firebase v8 (stable for CDN usage) -->
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
 
-<!-- PDF -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
 <style>
 body{
-  font-family: Inter, system-ui, sans-serif;
-  background: radial-gradient(circle at top, #1e293b, #020617);
-  overflow-x:hidden;
+  font-family:Inter,system-ui,sans-serif;
+  background:radial-gradient(circle at top,#1e293b,#020617);
 }
 .msg{animation:pop .35s ease-out}
 @keyframes pop{
-  from{opacity:0;transform:translateY(10px) scale(.96)}
+  from{opacity:0;transform:translateY(12px) scale(.96)}
   to{opacity:1;transform:none}
 }
 .typing span{animation:blink 1.4s infinite both}
@@ -50,14 +45,12 @@ body{
 
 <div class="max-w-4xl mx-auto p-4">
 
-<!-- TOP BAR -->
 <div class="flex items-center justify-between mb-4">
   <button onclick="toggleMenu()" class="p-3 rounded-full bg-white/10">☰</button>
   <h1 class="text-xl font-bold">PIXODRA<span class="text-indigo-400">.AI</span></h1>
   <div class="w-10"></div>
 </div>
 
-<!-- LANG + TOOLS -->
 <div class="flex gap-3 mb-4 flex-wrap">
   <button class="lang active" onclick="setLang('english',this)">English</button>
   <button class="lang" onclick="setLang('tamil',this)">Tamil</button>
@@ -65,7 +58,6 @@ body{
   <button class="lang" onclick="alert('Tools coming soon 🚀')">🧰 Tools</button>
 </div>
 
-<!-- CHAT -->
 <div class="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-4">
   <div id="chat" class="space-y-4 mb-4 max-h-[60vh] overflow-y-auto"></div>
 
@@ -74,24 +66,20 @@ body{
     placeholder="Ask Pixodra anything…"></textarea>
 
   <div class="flex gap-3 mt-4">
-    <button onclick="send()" class="btn flex-1 bg-white text-black py-3 rounded-2xl font-semibold">
-      Send
-    </button>
-    <button onclick="makePDF()" class="btn flex-1 bg-indigo-600/30 py-3 rounded-2xl">
-      Make PDF
-    </button>
+    <button onclick="send()" class="btn flex-1 bg-white text-black py-3 rounded-2xl font-semibold">Send</button>
+    <button onclick="makePDF()" class="btn flex-1 bg-indigo-600/30 py-3 rounded-2xl">Make PDF</button>
   </div>
 </div>
 
 <p class="text-xs text-center text-gray-400 mt-4">Pixodra-ai (Beta)</p>
 </div>
 
-<!-- OVERLAY -->
 <div id="overlay" onclick="toggleMenu()" class="fixed inset-0 bg-black/40 hidden z-40"></div>
 
-<!-- DRAWER -->
-<div id="menu" class="fixed top-0 left-0 h-full w-72 bg-[#0f172a]
- transform -translate-x-full transition-transform duration-300 z-50 p-5 flex flex-col">
+<div id="menu"
+  class="fixed top-0 left-0 h-full w-72 bg-[#0f172a]
+         transform -translate-x-full transition-transform
+         duration-300 z-50 p-5 flex flex-col">
 
   <h2 class="text-lg font-semibold mb-4">Pixodra.ai</h2>
 
@@ -102,42 +90,37 @@ body{
 
   <div class="text-sm text-gray-300 mb-4">
     <div id="userName">User</div>
-    <div id="userEmail" class="text-xs opacity-70">email</div>
+    <div id="userEmail" class="text-xs opacity-70"></div>
   </div>
 
-  <button onclick="logout()" class="mt-auto bg-red-500/20 text-red-300 py-2 rounded-xl">
-    Logout
-  </button>
+  <button onclick="logout()" class="mt-auto bg-red-500/20 text-red-300 py-2 rounded-xl">Logout</button>
 </div>
 
 <script>
-/* 🔥 FIREBASE CONFIG — REPLACE WITH YOUR REAL VALUES */
-var firebaseConfig = {
-  apiKey: "AIzaSyDNCb1OOT1tjvC2G7fd3Lky10_FNbp3_oE",
-  authDomain: "pixodra-ai.firebaseapp.com",
+/* FIREBASE CONFIG */
+firebase.initializeApp({
+  apiKey:"AIzaSyDNCb1OOT1tjvC2G7fd3Lky10_FNbp3_oE",
+  authDomain:  "pixodra-ai.firebaseapp.com",
   projectId: "pixodra-ai",
-  appId: "1:435810946190:web:f7a0fd440179ee433d0ddf"
-};
-firebase.initializeApp(firebaseConfig);
+  appId:  "1:435810946190:web:f7a0fd440179ee433d0ddf"
+});
 
-/* AUTH PROTECT */
 firebase.auth().onAuthStateChanged(user=>{
   if(!user){
-    location.href="/login.html";
-  } else {
-    userName.innerText = user.displayName;
-    userEmail.innerText = user.email;
+    window.location.replace("/login.html");
+  }else{
+    userName.innerText=user.displayName||"User";
+    userEmail.innerText=user.email||"";
   }
 });
 
-/* MENU */
 function toggleMenu(){
   menu.classList.toggle("-translate-x-full");
   overlay.classList.toggle("hidden");
 }
 
-/* CHAT */
-let lang="english", history=[], question="";
+let lang="english",history=[],question="";
+
 function setLang(l,b){
   lang=l;
   document.querySelectorAll(".lang").forEach(x=>x.classList.remove("active"));
@@ -146,57 +129,80 @@ function setLang(l,b){
 
 async function send(){
   const text=input.value.trim();
-  if(!text) return;
+  if(!text)return;
   question=text;
 
-  chat.innerHTML+=`<div class="msg text-right">
-    <div class="inline-block bg-indigo-600/30 px-4 py-2 rounded-2xl">${text}</div>
-  </div>`;
+  chat.innerHTML+=`
+    <div class="msg text-right">
+      <div class="inline-block bg-indigo-600/30 px-4 py-2 rounded-2xl">${text}</div>
+    </div>`;
   input.value="";
   chat.scrollTop=chat.scrollHeight;
 
-  if(text.toLowerCase()=="hi"){
-    bot("Vanakkam  Ungalukku enna vendum?");
+  const lower=text.toLowerCase();
+
+  /* 🔥 SPECIAL OWNER RESPONSE */
+  if(lower==="im mrs pd"){
+    bot("Hi mam glad to hear that our Owner pondati is here ! Ena Vaedum Madam ku");
     return;
   }
 
-  const t=document.createElement("div");
-  t.innerHTML=`<div class="msg typing bg-gray-700/40 px-4 py-2 rounded-2xl">
-    Pixodra typing<span>.</span><span>.</span><span>.</span></div>`;
-  chat.appendChild(t);
+  if(lower==="hi"){
+    bot("Vanakkam 😊 Ungalukku enna vendum?");
+    return;
+  }
 
-  const r=await fetch("/api/ask",{method:"POST",headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({message:`[${lang}] ${text}`})});
+  const typing=document.createElement("div");
+  typing.innerHTML=`
+    <div class="msg typing bg-gray-700/40 px-4 py-2 rounded-2xl">
+      Pixodra typing<span>.</span><span>.</span><span>.</span>
+    </div>`;
+  chat.appendChild(typing);
+
+  const r=await fetch("/api/ask",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({message:`[${lang}] ${text}`})
+  });
   const d=await r.json();
-  t.remove();
+  typing.remove();
   bot(d.reply);
   history.push(d.reply);
 }
 
 function bot(t){
-  chat.innerHTML+=`<div class="msg bg-gray-700/50 px-4 py-2 rounded-2xl">${t}</div>`;
+  chat.innerHTML+=`
+    <div class="msg bg-gray-700/50 px-4 py-2 rounded-2xl">${t}</div>`;
   chat.scrollTop=chat.scrollHeight;
 }
 
-/* PDF */
 function makePDF(){
-  if(!history.length) return alert("No content");
+  if(!history.length)return alert("No content");
   const box=document.createElement("div");
   box.style.padding="20mm";
   box.style.background="white";
   box.style.color="black";
-  box.innerHTML=`<h2>Pixodra-ai (Beta)</h2><p><b>Question:</b>${question}</p>
-  ${history.map(h=>`<p>${h}</p>`).join("")}`;
+  box.innerHTML=`
+    <h2>Pixodra-ai (Beta)</h2>
+    <p><b>Question:</b> ${question}</p>
+    ${history.map(h=>`<p>${h}</p>`).join("")}
+  `;
   document.body.appendChild(box);
   html2pdf().from(box).save("pixodra.pdf").then(()=>box.remove());
 }
 
-/* LOGOUT */
 function logout(){
-  firebase.auth().signOut().then(()=>location.href="/login.html");
+  firebase.auth().signOut().then(()=>{
+    window.location.replace("/login.html");
+  });
 }
-function newChat(){ chat.innerHTML=""; toggleMenu(); }
+
+function newChat(){
+  chat.innerHTML="";
+  toggleMenu();
+}
 </script>
 
 </body>
 </html>
+
