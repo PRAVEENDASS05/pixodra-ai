@@ -129,22 +129,25 @@ function makePDF(){
 
   const today = new Date().toLocaleDateString();
 
-  const box=document.createElement("div");
+  const box = document.createElement("div");
   box.style.padding="20mm";
   box.style.fontFamily=font;
   box.style.color="black";
   box.style.background="white";
-  box.style.lineHeight="1.7";
+  box.style.lineHeight="1.8";
 
-  box.innerHTML=`
-    <div style="text-decoration:underline; font-weight:600; margin-bottom:8px;">
-      Date: ${today} |
-      Language: ${lang.toUpperCase()} |
-      Version: Pixodra-ai (Beta)
-    </div>
+  /* FIRST PAGE HEADER ONLY */
+  box.innerHTML = `
+    <div style="text-align:center; margin-bottom:20px;">
+      <div style="text-decoration:underline; font-weight:600;">
+        Date: ${today} &nbsp;|&nbsp;
+        Language: ${lang.toUpperCase()} &nbsp;|&nbsp;
+        Version: Pixodra-ai (Beta)
+      </div>
 
-    <div style="font-weight:bold; margin-bottom:16px;">
-      Question: ${question}
+      <div style="font-weight:bold; margin-top:10px;">
+        Question: ${question}
+      </div>
     </div>
 
     ${history.map(h=>`<p>${h}</p>`).join("")}
@@ -153,16 +156,20 @@ function makePDF(){
   document.body.appendChild(box);
 
   html2pdf().from(box).toPdf().get('pdf').then(pdf=>{
-    const pages=pdf.internal.getNumberOfPages();
-    const h=pdf.internal.pageSize.height;
-    const w=pdf.internal.pageSize.width;
+    const pages = pdf.internal.getNumberOfPages();
+    const h = pdf.internal.pageSize.height;
+    const w = pdf.internal.pageSize.width;
 
     for(let i=1;i<=pages;i++){
       pdf.setPage(i);
+
+      // Footer watermark (ALL pages)
       pdf.setFont("Courier","italic");
       pdf.setFontSize(10);
       pdf.setTextColor(0);
       pdf.text("Thanks for using Pixodra.ai",15,h-10);
+
+      // Page number
       pdf.text(`Page ${i} of ${pages}`,w-45,h-10);
     }
   }).save("pixodra-response.pdf")
