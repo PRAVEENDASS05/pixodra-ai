@@ -5,18 +5,18 @@
   <title>Pixodra.ai</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <!-- Tailwind -->
+  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
 
-  <!-- html2pdf (Tamil-safe) -->
+  <!-- html2pdf (Tamil-safe PDF generation) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
   <style>
     @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
+      from { opacity: 0; transform: translateY(8px); }
       to { opacity: 1; transform: translateY(0); }
     }
-    .fade-in { animation: fadeIn 0.35s ease-out; }
+    .fade-in { animation: fadeIn 0.3s ease-out; }
 
     .typing span {
       animation: blink 1.4s infinite both;
@@ -35,7 +35,6 @@
       font-size: 14px;
     }
     .lang-btn:hover { background: rgba(255,255,255,0.15); }
-
     .active-lang {
       background: rgba(99,102,241,0.35);
       color: #e0e7ff;
@@ -66,7 +65,7 @@
     <button id="tanglish" class="lang-btn" onclick="setLang('tanglish')">Tanglish</button>
   </div>
 
-  <!-- CHAT BOX -->
+  <!-- CHAT -->
   <div class="bg-[#0f172a]/90 rounded-2xl shadow-xl p-4">
     <div id="chat" class="space-y-3 mb-4 max-h-[55vh] overflow-y-auto"></div>
 
@@ -143,7 +142,7 @@
       const res = await fetch("/api/ask", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: `[${selectedLang}] ${input}` })
+        body: JSON.stringify({ message: \`[\${selectedLang}] \${input}\` })
       });
       const data = await res.json();
       typing.remove();
@@ -163,7 +162,7 @@
     chat.scrollTop = chat.scrollHeight;
   }
 
-  /* ---------- PDF (HTML → PDF, Tamil SAFE) ---------- */
+  /* -------- PDF (HTML → PDF, Tamil SAFE) -------- */
   function makePDF() {
     if (!conversation.length) {
       alert("No content to export");
@@ -176,6 +175,8 @@
     pdfContent.style.padding = "30px";
     pdfContent.style.fontFamily = "serif";
     pdfContent.style.lineHeight = "1.7";
+    pdfContent.style.background = "white";
+    pdfContent.style.color = "black";
 
     pdfContent.innerHTML = `
       <div style="font-weight:bold; margin-bottom:20px;">
@@ -200,16 +201,18 @@
 
     document.body.appendChild(pdfContent);
 
-    html2pdf()
-      .set({
-        margin: [20, 15, 25, 15],
-        filename: "pixodra-response.pdf",
-        html2canvas: { scale: 2 },
-        jsPDF: { unit: "mm", format: "a4", orientation: "portrait" }
-      })
-      .from(pdfContent)
-      .save()
-      .then(() => pdfContent.remove());
+    requestAnimationFrame(() => {
+      html2pdf()
+        .set({
+          margin: [20, 15, 25, 15],
+          filename: "pixodra-response.pdf",
+          html2canvas: { scale: 2 },
+          jsPDF: { unit: "mm", format: "a4", orientation: "portrait" }
+        })
+        .from(pdfContent)
+        .save()
+        .then(() => pdfContent.remove());
+    });
   }
 </script>
 
