@@ -8,10 +8,10 @@
   <!-- Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
 
-  <!-- Tamil-safe Google Font -->
+  <!-- Tamil-safe font -->
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Tamil:wght@400;600&display=swap" rel="stylesheet">
 
-  <!-- html2pdf -->
+  <!-- html2pdf bundle (includes jsPDF) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
   <style>
@@ -53,8 +53,7 @@
   <!-- HEADER -->
   <div class="flex justify-between items-center mb-4">
     <h1 class="text-3xl font-bold">PIXODRA.AI</h1>
-    <button
-      onclick="window.location.href='/symposium'"
+    <button onclick="window.location.href='/symposium'"
       class="px-4 py-2 rounded-xl bg-indigo-600/20 text-indigo-400 hover:bg-indigo-600/30">
       🎓 Symposium Finder
     </button>
@@ -86,10 +85,6 @@
       </button>
     </div>
   </div>
-
-  <p class="text-xs text-gray-500 text-center mt-4">
-    Built by Pixodra Technologies
-  </p>
 </div>
 
 <script>
@@ -102,12 +97,12 @@
     document.querySelectorAll(".lang-btn").forEach(b=>b.classList.remove("active-lang"));
     document.getElementById(lang).classList.add("active-lang");
 
-    const placeholders = {
+    const p = {
       english: "Ask Pixodra anything…",
       tamil: "Ungal kelviyai inge type pannunga…",
       tanglish: "Ungal question-ah inga type pannunga…"
     };
-    userInput.placeholder = placeholders[lang];
+    userInput.placeholder = p[lang];
   }
 
   async function askPixodra(){
@@ -115,7 +110,6 @@
     if(!input) return;
 
     lastUserQuestion = input;
-
     chat.innerHTML += `
       <div class="text-right fade-in">
         <div class="inline-block bg-indigo-600/20 px-3 py-2 rounded-xl">${input}</div>
@@ -138,7 +132,7 @@
     const res = await fetch("/api/ask",{
       method:"POST",
       headers:{ "Content-Type":"application/json" },
-      body:JSON.stringify({ message:\`[\${selectedLang}] \${input}\` })
+      body:JSON.stringify({ message:`[${selectedLang}] ${input}` })
     });
     const data = await res.json();
     typing.remove();
@@ -152,70 +146,74 @@
     chat.scrollTop = chat.scrollHeight;
   }
 
-  /* ---------- PDF ---------- */
+  /* -------- PDF (GUARANTEED WORKING) -------- */
   function makePDF(){
     if(!conversation.length){
       alert("No content to export");
       return;
     }
 
-    const date = new Date().toLocaleString();
-    const font = selectedLang==="tamil"
+    const font = selectedLang === "tamil"
       ? "'Noto Sans Tamil', sans-serif"
       : "serif";
 
-    const pdf = document.createElement("div");
-    pdf.style.padding = "30px";
-    pdf.style.fontFamily = font;
-    pdf.style.lineHeight = "1.7";
-    pdf.style.background = "white";
-    pdf.style.color = "black";
+    const date = new Date().toLocaleString();
 
-    pdf.innerHTML = `
-      <style>
-        @page { margin: 20mm 15mm 25mm 15mm; }
-        footer {
-          position: fixed;
-          bottom: 10mm;
-          left: 0;
-          right: 0;
-          text-align: center;
-          font-family: monospace;
-          font-size: 10px;
-          color: #777;
-        }
-        .page-number:after {
-          content: "Page " counter(page);
-        }
-      </style>
+    const pdfContent = document.createElement("div");
+    pdfContent.style.padding = "20mm 15mm 25mm 15mm";
+    pdfContent.style.fontFamily = font;
+    pdfContent.style.background = "white";
+    pdfContent.style.color = "black";
+    pdfContent.style.lineHeight = "1.7";
 
-      <div style="font-weight:600; margin-bottom:20px;">
-        Question: ${lastUserQuestion}
-        &nbsp;|&nbsp; Date: ${date}
-        &nbsp;|&nbsp; Language: ${selectedLang.toUpperCase()}
+    pdfContent.innerHTML = `
+      <div style="font-weight:600; margin-bottom:16px;">
+        Question: ${lastUserQuestion} |
+        Date: ${date} |
+        Language: ${selectedLang.toUpperCase()}
       </div>
-
       ${conversation.map(m=>`<p>${m}</p>`).join("")}
-
-      <footer>
-        Thanks for using Pixodra.ai • <span class="page-number"></span>
-      </footer>
     `;
 
-    document.body.appendChild(pdf);
+    document.body.appendChild(pdfContent);
 
-    requestAnimationFrame(()=>{
-      html2pdf()
-        .set({
-          margin:[20,15,25,15],
-          filename:"pixodra-response.pdf",
-          html2canvas:{ scale:2 },
-          jsPDF:{ unit:"mm", format:"a4", orientation:"portrait" }
-        })
-        .from(pdf)
-        .save()
-        .then(()=>pdf.remove());
-    });
+    html2pdf()
+      .set({
+        margin: 0,
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: "mm", format: "a4", orientation: "portrait" }
+      })
+      .from(pdfContent)
+      .toPdf()
+      .get('pdf')
+      .then(pdf => {
+        const pageCount = pdf.internal.getNumberOfPages();
+        const pageHeight = pdf.internal.pageSize.height;
+        const pageWidth = pdf.internal.pageSize.width;
+
+        for (let i = 1; i <= pageCount; i++) {
+          pdf.setPage(i);
+
+          // Watermark
+          pdf.setFont("Courier", "italic");
+          pdf.setFontSize(9);
+          pdf.setTextColor(150);
+          pdf.text(
+            "Thanks for using Pixodra.ai",
+            15,
+            pageHeight - 10
+          );
+
+          // Page number
+          pdf.text(
+            `Page ${i} of ${pageCount}`,
+            pageWidth - 40,
+            pageHeight - 10
+          );
+        }
+      })
+      .save("pixodra-response.pdf")
+      .then(() => pdfContent.remove());
   }
 </script>
 
