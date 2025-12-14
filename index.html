@@ -148,7 +148,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const res = await fetch("/api/ask", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message: `[${selectedLang}] ${input}` })
+      body: JSON.stringify({ message: \`[\${selectedLang}] \${input}\` })
     });
 
     const data = await res.json();
@@ -181,7 +181,8 @@ document.addEventListener("DOMContentLoaded", () => {
       <div style="font-weight:600; margin-bottom:16px;">
         Question: ${lastUserQuestion} |
         Date: ${new Date().toLocaleString()} |
-        Language: ${selectedLang.toUpperCase()}
+        Language: ${selectedLang.toUpperCase()} |
+        Version: Pixodra-ai (Beta)
       </div>
       ${conversation.map(m => `<p>${m}</p>`).join("")}
     `;
