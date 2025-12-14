@@ -2,12 +2,12 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Pixodra Login</title>
+  <title>Pixodra.ai Login</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <script src="https://cdn.tailwindcss.com"></script>
 
-  <!-- Firebase COMPAT SDK (IMPORTANT) -->
+  <!-- Firebase COMPAT SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 </head>
@@ -17,45 +17,58 @@
   <div class="bg-slate-800 p-6 rounded-xl w-full max-w-md shadow-xl">
     <h1 class="text-2xl font-bold text-center mb-4">Pixodra.ai</h1>
 
-    <input id="email" type="email" placeholder="Email"
-      class="w-full p-3 mb-3 rounded bg-slate-700 focus:outline-none" />
-
-    <input id="password" type="password" placeholder="Password"
+    <input id="email" type="email" placeholder="Enter your email"
       class="w-full p-3 mb-4 rounded bg-slate-700 focus:outline-none" />
 
-    <button onclick="loginEmail()"
+    <button onclick="sendLoginLink()"
       class="w-full bg-blue-600 py-2 rounded mb-3 hover:bg-blue-700">
-      Login
+      Send Login Link
     </button>
+
+    <div class="text-center text-gray-400 my-3">OR</div>
 
     <button onclick="loginGoogle()"
       class="w-full bg-white text-black py-2 rounded hover:bg-gray-200">
       Continue with Google
     </button>
 
-    <p id="status" class="mt-4 text-sm text-center text-red-400"></p>
+    <p id="status" class="mt-4 text-sm text-center text-green-400"></p>
   </div>
 
 <script>
- 
+  // 🔑 PASTE YOUR REAL FIREBASE CONFIG HERE
   const firebaseConfig = {
     apiKey:"AIzaSyDNCb1OOT1tjvC2G7fd3Lky10_FNbp3_oE",
-    authDomain: "pixodra-ai.firebaseapp.com",
+    authDomain:  "pixodra-ai.firebaseapp.com",
     projectId: "pixodra-ai",
-    appId: "1:435810946190:web:f7a0fd440179ee433d0ddf"
+    appId:"1:435810946190:web:f7a0fd440179ee433d0ddf"
   };
 
   firebase.initializeApp(firebaseConfig);
-
   const auth = firebase.auth();
   const provider = new firebase.auth.GoogleAuthProvider();
 
-  function loginEmail() {
-    auth.signInWithEmailAndPassword(email.value, password.value)
+  function sendLoginLink() {
+    const emailValue = email.value;
+
+    if (!emailValue) {
+      status.innerText = "Please enter email";
+      return;
+    }
+
+    const actionCodeSettings = {
+      url: window.location.origin + "/ai.html",
+      handleCodeInApp: true
+    };
+
+    auth.sendSignInLinkToEmail(emailValue, actionCodeSettings)
       .then(() => {
-        window.location.href = "ai.html";
+        window.localStorage.setItem("pixodraEmail", emailValue);
+        status.innerText = "Login link sent! Check your email 📩";
       })
-      .catch(e => status.innerText = e.message);
+      .catch(error => {
+        status.innerText = error.message;
+      });
   }
 
   function loginGoogle() {
@@ -66,7 +79,7 @@
       .catch(e => status.innerText = e.message);
   }
 
-  // Auto-redirect if already logged in
+  // Auto redirect if already logged in
   auth.onAuthStateChanged(user => {
     if (user) {
       window.location.href = "ai.html";
