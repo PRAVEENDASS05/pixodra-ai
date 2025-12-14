@@ -15,31 +15,15 @@
   </style>
 </head>
 
-<body class="bg-gradient-to-br from-slate-900 via-gray-900 to-black min-h-screen flex items-center justify-center text-white">
+<body class="bg-gradient-to-br from-slate-900 via-gray-900 to-black min-h-screen text-white">
 
-<div class="w-full max-w-2xl bg-[#0f172a]/90 backdrop-blur-xl rounded-3xl shadow-2xl p-6 fade-up">
+<!-- CONTAINER -->
+<div class="max-w-4xl mx-auto p-4 fade-up">
 
-  <h1 class="text-3xl font-bold text-center mb-2">PIXODRA.AI</h1>
-  <p class="text-center text-gray-400 mb-6">
-    Your friendly AI for learning & Tamil Nadu symposiums
-  </p>
+  <!-- HEADER -->
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-3xl font-bold">PIXODRA.AI</h1>
 
-  <textarea
-    id="userInput"
-    placeholder="Ask me anything..."
-    class="w-full p-4 rounded-xl bg-gray-800 border border-gray-700 mb-4 focus:outline-none"
-    rows="4"></textarea>
-
-  <button
-    onclick="askPixodra()"
-    class="w-full bg-white text-black py-3 rounded-xl font-semibold hover:bg-gray-200 transition">
-    Ask Pixodra
-  </button>
-
-  <p id="response" class="mt-4 text-gray-300 text-sm"></p>
-
-  <!-- TOOL BUTTONS -->
-  <div class="flex justify-center gap-4 mt-6">
     <button
       onclick="window.location.href='/symposium'"
       class="px-4 py-2 rounded-xl bg-indigo-600/20 text-indigo-400 hover:bg-indigo-600/30 transition">
@@ -47,43 +31,124 @@
     </button>
   </div>
 
-  <p class="text-xs text-gray-500 text-center mt-6">
+  <!-- LANGUAGE SELECT -->
+  <div class="flex gap-3 mb-4">
+    <button onclick="setLang('english')" class="lang-btn">English</button>
+    <button onclick="setLang('tamil')" class="lang-btn">Tamil</button>
+    <button onclick="setLang('tanglish')" class="lang-btn">Tanglish</button>
+  </div>
+
+  <!-- CHAT BOX -->
+  <div class="bg-[#0f172a]/90 rounded-2xl shadow-xl p-4 mb-4">
+    <div id="chat" class="space-y-3 mb-4 max-h-[50vh] overflow-y-auto"></div>
+
+    <textarea
+      id="userInput"
+      rows="3"
+      placeholder="Ask Pixodra..."
+      class="w-full p-3 rounded-xl bg-gray-800 border border-gray-700 focus:outline-none"></textarea>
+
+    <div class="flex gap-3 mt-3">
+      <button onclick="askPixodra()" class="btn-primary">Send</button>
+      <button onclick="makePDF()" class="btn-secondary">Make PDF</button>
+    </div>
+  </div>
+
+  <p class="text-xs text-gray-500 text-center">
     Built by Pixodra Technologies
   </p>
-
 </div>
 
 <script>
+  let selectedLang = "english";
+  let conversation = [];
+
+  function setLang(lang) {
+    selectedLang = lang;
+    alert("Language set to " + lang);
+  }
+
   async function askPixodra() {
-    const input = document.getElementById("userInput").value;
-    const responseBox = document.getElementById("response");
+    const input = document.getElementById("userInput").value.trim();
+    if (!input) return;
 
-    if (!input.trim()) {
-      responseBox.innerText = "Please type something 🙂";
+    const chat = document.getElementById("chat");
+
+    chat.innerHTML += `
+      <div class="text-right">
+        <div class="inline-block bg-indigo-600/20 p-2 rounded-xl">${input}</div>
+      </div>`;
+
+    document.getElementById("userInput").value = "";
+
+    if (input.toLowerCase() === "hi") {
+      const reply = "Vanakkam! Ungalukku enna vendum? 😊";
+      chat.innerHTML += botBubble(reply);
+      conversation.push(reply);
       return;
     }
 
-    if (input.toLowerCase().trim() === "hi") {
-      responseBox.innerText = "Vanakkam! Ungalukku enna vendum? 😊";
+    chat.innerHTML += botBubble("Pixodra thinking... 🤖");
+
+    const res = await fetch("/api/ask", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        message: `[${selectedLang}] ${input}`
+      })
+    });
+
+    const data = await res.json();
+    chat.lastElementChild.remove();
+    chat.innerHTML += botBubble(data.reply);
+    conversation.push(data.reply);
+  }
+
+  function botBubble(text) {
+    return `
+      <div class="text-left">
+        <div class="inline-block bg-gray-700/50 p-2 rounded-xl">${text}</div>
+      </div>`;
+  }
+
+  function makePDF() {
+    if (conversation.length === 0) {
+      alert("No content to export");
       return;
     }
 
-    responseBox.innerText = "Pixodra is thinking... 🤖";
-
-    try {
-      const res = await fetch("/api/ask", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: input })
-      });
-
-      const data = await res.json();
-      responseBox.innerText = data.reply;
-    } catch {
-      responseBox.innerText = "Something went wrong.";
-    }
+    const blob = new Blob([conversation.join("\n\n")], { type: "application/pdf" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "pixodra-response.pdf";
+    link.click();
   }
 </script>
+
+<style>
+  .lang-btn {
+    padding: 6px 14px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.08);
+    transition: 0.2s;
+  }
+  .lang-btn:hover { background: rgba(255,255,255,0.15); }
+
+  .btn-primary {
+    flex: 1;
+    background: white;
+    color: black;
+    padding: 10px;
+    border-radius: 12px;
+    font-weight: 600;
+  }
+  .btn-secondary {
+    flex: 1;
+    background: rgba(255,255,255,0.15);
+    padding: 10px;
+    border-radius: 12px;
+  }
+</style>
 
 </body>
 </html>
