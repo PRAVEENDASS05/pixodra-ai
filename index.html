@@ -1,44 +1,48 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Pixodra – Fix Base</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <title>Pixodra Login</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
   <script src="https://cdn.tailwindcss.com"></script>
 
-  <!-- Firebase COMPAT SDK -->
+  <!-- Firebase COMPAT SDK (IMPORTANT) -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 </head>
 
 <body class="min-h-screen bg-slate-900 flex items-center justify-center text-white">
 
-<div class="bg-slate-800 p-6 rounded-xl w-full max-w-md">
-  <h1 class="text-2xl font-bold text-center mb-4">Pixodra Login</h1>
+  <div class="bg-slate-800 p-6 rounded-xl w-full max-w-md shadow-xl">
+    <h1 class="text-2xl font-bold text-center mb-4">Pixodra.ai</h1>
 
-  <input id="email" type="email" placeholder="Email"
-    class="w-full p-3 mb-3 rounded bg-slate-700">
+    <input id="email" type="email" placeholder="Email"
+      class="w-full p-3 mb-3 rounded bg-slate-700 focus:outline-none" />
 
-  <input id="password" type="password" placeholder="Password"
-    class="w-full p-3 mb-4 rounded bg-slate-700">
+    <input id="password" type="password" placeholder="Password"
+      class="w-full p-3 mb-4 rounded bg-slate-700 focus:outline-none" />
 
-  <button onclick="loginEmail()" class="w-full bg-blue-600 py-2 rounded mb-2">
-    Login
-  </button>
+    <button onclick="loginEmail()"
+      class="w-full bg-blue-600 py-2 rounded mb-3 hover:bg-blue-700">
+      Login
+    </button>
 
-  <button onclick="loginGoogle()" class="w-full bg-white text-black py-2 rounded">
-    Continue with Google
-  </button>
+    <button onclick="loginGoogle()"
+      class="w-full bg-white text-black py-2 rounded hover:bg-gray-200">
+      Continue with Google
+    </button>
 
-  <p id="status" class="mt-4 text-sm text-center"></p>
-</div>
+    <p id="status" class="mt-4 text-sm text-center text-red-400"></p>
+  </div>
 
 <script>
-
+ 
   const firebaseConfig = {
-    apiKey: "AIzaSyDNCb1OOT1tjvC2G7fd3Lky10_FNbp3_oE",
+    apiKey:"AIzaSyDNCb1OOT1tjvC2G7fd3Lky10_FNbp3_oE",
     authDomain: "pixodra-ai.firebaseapp.com",
     projectId: "pixodra-ai",
-    appId:  "1:435810946190:web:f7a0fd440179ee433d0ddf"
+    appId: "1:435810946190:web:f7a0fd440179ee433d0ddf"
   };
 
   firebase.initializeApp(firebaseConfig);
@@ -48,15 +52,26 @@
 
   function loginEmail() {
     auth.signInWithEmailAndPassword(email.value, password.value)
-      .then(() => status.innerText = "Login successful ✅")
+      .then(() => {
+        window.location.href = "ai.html";
+      })
       .catch(e => status.innerText = e.message);
   }
 
   function loginGoogle() {
     auth.signInWithPopup(provider)
-      .then(() => status.innerText = "Google login successful ✅")
+      .then(() => {
+        window.location.href = "ai.html";
+      })
       .catch(e => status.innerText = e.message);
   }
+
+  // Auto-redirect if already logged in
+  auth.onAuthStateChanged(user => {
+    if (user) {
+      window.location.href = "ai.html";
+    }
+  });
 </script>
 
 </body>
