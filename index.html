@@ -1,82 +1,49 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <title>Pixodra.ai</title>
+  <title>Pixodra – Fix Base</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://cdn.tailwindcss.com"></script>
 
-  <!-- Firebase COMPAT SDK (NO MODULES) -->
+  <!-- Firebase COMPAT SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 </head>
 
-<body class="min-h-screen bg-gradient-to-br from-slate-900 to-black flex items-center justify-center text-white">
+<body class="min-h-screen bg-slate-900 flex items-center justify-center text-white">
 
-<!-- LOGIN -->
-<div id="loginBox" class="bg-slate-900 p-6 rounded-xl w-full max-w-md">
-  <h2 class="text-2xl font-bold mb-4 text-center">Pixodra Login</h2>
+<div class="bg-slate-800 p-6 rounded-xl w-full max-w-md">
+  <h1 class="text-2xl font-bold text-center mb-4">Pixodra Login</h1>
 
   <input id="email" type="email" placeholder="Email"
-    class="w-full p-3 mb-3 rounded bg-slate-800">
+    class="w-full p-3 mb-3 rounded bg-slate-700">
 
   <input id="password" type="password" placeholder="Password"
-    class="w-full p-3 mb-4 rounded bg-slate-800">
+    class="w-full p-3 mb-4 rounded bg-slate-700">
 
-  <button onclick="loginEmail()"
-    class="w-full bg-blue-600 py-2 rounded mb-2">
+  <button onclick="loginEmail()" class="w-full bg-blue-600 py-2 rounded mb-2">
     Login
   </button>
 
-  <button onclick="registerEmail()"
-    class="w-full bg-gray-600 py-2 rounded mb-3">
-    Register
-  </button>
-
-  <button onclick="loginGoogle()"
-    class="w-full bg-white text-black py-2 rounded">
+  <button onclick="loginGoogle()" class="w-full bg-white text-black py-2 rounded">
     Continue with Google
   </button>
 
   <p id="status" class="mt-4 text-sm text-center"></p>
 </div>
 
-<!-- APP -->
-<div id="appBox" class="hidden bg-slate-900 p-6 rounded-xl w-full max-w-2xl">
-  <div class="flex justify-between mb-4">
-    <h1 class="font-bold text-xl">PIXODRA.AI</h1>
-    <button onclick="logout()" class="text-red-400">Logout</button>
-  </div>
-
-  <textarea id="question"
-    placeholder="Ask Pixodra..."
-    rows="4"
-    class="w-full p-4 bg-slate-800 rounded mb-3"></textarea>
-
-  <button onclick="askQuestion()"
-    class="w-full bg-white text-black py-2 rounded">
-    Ask Pixodra
-  </button>
-
-  <p id="response" class="mt-4 text-slate-300"></p>
-</div>
-
 <script>
-  // 🔴 PASTE YOUR REAL FIREBASE CONFIG HERE
+
   const firebaseConfig = {
-    apiKey: "PASTE_REAL_KEY",
-    authDomain: "PASTE_REAL_DOMAIN",
-    projectId: "PASTE_REAL_PROJECT_ID",
-    storageBucket: "PASTE_REAL_STORAGE",
-    messagingSenderId: "PASTE_REAL_SENDER_ID",
-    appId: "PASTE_REAL_APP_ID"
+    apiKey: "AIzaSyDNCb1OOT1tjvC2G7fd3Lky10_FNbp3_oE",
+    authDomain: "pixodra-ai.firebaseapp.com",
+    projectId: "pixodra-ai",
+    appId:  "1:435810946190:web:f7a0fd440179ee433d0ddf"
   };
 
   firebase.initializeApp(firebaseConfig);
 
   const auth = firebase.auth();
-  const db = firebase.firestore();
   const provider = new firebase.auth.GoogleAuthProvider();
 
   function loginEmail() {
@@ -85,45 +52,10 @@
       .catch(e => status.innerText = e.message);
   }
 
-  function registerEmail() {
-    auth.createUserWithEmailAndPassword(email.value, password.value)
-      .then(() => status.innerText = "Registered ✅")
-      .catch(e => status.innerText = e.message);
-  }
-
   function loginGoogle() {
     auth.signInWithPopup(provider)
       .then(() => status.innerText = "Google login successful ✅")
       .catch(e => status.innerText = e.message);
-  }
-
-  function logout() {
-    auth.signOut();
-  }
-
-  auth.onAuthStateChanged(user => {
-    if (user) {
-      loginBox.style.display = "none";
-      appBox.style.display = "block";
-    } else {
-      loginBox.style.display = "block";
-      appBox.style.display = "none";
-    }
-  });
-
-  function askQuestion() {
-    const q = question.value.trim();
-    if (!q) return;
-
-    response.innerText = "Saved ✔";
-
-    db.collection("questions").add({
-      email: auth.currentUser.email,
-      question: q,
-      createdAt: firebase.firestore.FieldValue.serverTimestamp()
-    });
-
-    question.value = "";
   }
 </script>
 
