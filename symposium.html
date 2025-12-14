@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Symposium Finder | Pixodra</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .fade-up { animation: fadeUp 0.6s ease-out; }
+  </style>
+</head>
+
+<body class="bg-gradient-to-br from-slate-900 via-gray-900 to-black min-h-screen flex items-center justify-center text-white">
+
+<div class="w-full max-w-3xl bg-[#0f172a]/90 backdrop-blur-xl rounded-3xl shadow-2xl p-6 fade-up">
+
+  <div class="flex justify-between items-center mb-6">
+    <div>
+      <h1 class="text-2xl font-bold">🎓 Symposium Finder</h1>
+      <p class="text-sm text-gray-400">Tamil Nadu Colleges</p>
+    </div>
+
+    <button
+      onclick="window.location.href='/'"
+      class="text-indigo-400 hover:underline text-sm">
+      ← Back to Pixodra
+    </button>
+  </div>
+
+  <label class="text-sm text-gray-300">Select District</label>
+  <select
+    id="district"
+    onchange="showEvents()"
+    class="w-full mt-2 p-3 rounded-xl bg-gray-900 border border-gray-700">
+
+    <option value="">-- Select District --</option>
+    <option value="chennai">Chennai</option>
+    <option value="coimbatore">Coimbatore</option>
+    <option value="madurai">Madurai</option>
+    <option value="salem">Salem</option>
+  </select>
+
+  <div id="results" class="mt-6 space-y-4"></div>
+
+</div>
+
+<script>
+  const data = {
+    chennai: [
+      { college: "CEG Anna University", event: "Techofes", contact: "9876543210" }
+    ],
+    coimbatore: [
+      { college: "PSG Tech", event: "Kriya", contact: "9000011111" }
+    ],
+    madurai: [
+      { college: "TCE", event: "TechXplore", contact: "9555522222" }
+    ],
+    salem: [
+      { college: "Sona College", event: "Sona Fest", contact: "sonafest@sona.edu" }
+    ]
+  };
+
+  function showEvents() {
+    const district = document.getElementById("district").value;
+    const results = document.getElementById("results");
+    results.innerHTML = "";
+
+    if (!district) return;
+
+    data[district].forEach(item => {
+      results.innerHTML += `
+        <div class="bg-white/10 p-4 rounded-xl">
+          <h2 class="text-indigo-300 font-semibold">${item.college}</h2>
+          <p>🎉 ${item.event}</p>
+          <p class="text-gray-400">📞 ${item.contact}</p>
+        </div>
+      `;
+    });
+  }
+</script>
+
+</body>
+</html>
