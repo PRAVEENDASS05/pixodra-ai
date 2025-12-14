@@ -2,22 +2,21 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Pixodra.ai</title>
+  <title>Pixodra Login Test</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
-<body class="min-h-screen bg-gradient-to-br from-slate-900 to-black flex items-center justify-center text-white">
+<body class="min-h-screen bg-slate-900 flex items-center justify-center text-white">
 
-<!-- LOGIN BOX -->
-<div id="loginBox" class="w-full max-w-md bg-slate-900 p-6 rounded-xl shadow-xl">
-  <h2 class="text-2xl font-bold text-center mb-4">Pixodra.ai Login</h2>
+<div class="bg-slate-800 p-6 rounded-xl w-full max-w-md">
+  <h2 class="text-2xl font-bold mb-4 text-center">Pixodra Login</h2>
 
   <input id="email" type="email" placeholder="Email"
-    class="w-full p-3 mb-3 rounded bg-slate-800">
+    class="w-full p-3 mb-3 rounded bg-slate-700">
 
   <input id="password" type="password" placeholder="Password"
-    class="w-full p-3 mb-4 rounded bg-slate-800">
+    class="w-full p-3 mb-4 rounded bg-slate-700">
 
   <button onclick="loginEmail()"
     class="w-full bg-blue-600 py-2 rounded mb-2">
@@ -25,7 +24,7 @@
   </button>
 
   <button onclick="registerEmail()"
-    class="w-full bg-gray-700 py-2 rounded mb-3">
+    class="w-full bg-gray-600 py-2 rounded mb-2">
     Register
   </button>
 
@@ -33,101 +32,67 @@
     class="w-full bg-white text-black py-2 rounded">
     Continue with Google
   </button>
+
+  <p id="status" class="mt-4 text-sm text-center"></p>
 </div>
 
-<!-- APP BOX -->
-<div id="appBox" class="hidden w-full max-w-2xl bg-slate-900 p-6 rounded-xl shadow-xl">
-  <div class="flex justify-between items-center mb-4">
-    <h1 class="text-xl font-bold">PIXODRA.AI</h1>
-    <div>
-      <span id="userInfo" class="text-sm"></span>
-      <button onclick="logout()" class="ml-3 text-red-400">Logout</button>
-    </div>
-  </div>
-
-  <textarea id="question"
-    placeholder="Ask Pixodra something..."
-    rows="4"
-    class="w-full p-4 bg-slate-800 rounded mb-3"></textarea>
-
-  <button onclick="askQuestion()"
-    class="w-full bg-white text-black py-2 rounded">
-    Ask Pixodra
-  </button>
-
-  <p id="response" class="mt-4 text-slate-300"></p>
-</div>
-
-<!-- FIREBASE -->
+<!-- FIREBASE MODULE -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider,
-           signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut }
-    from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-  import { getFirestore, collection, addDoc, serverTimestamp }
-    from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import {
+    getAuth,
+    signInWithEmailAndPassword,
+    createUserWithEmailAndPassword,
+    GoogleAuthProvider,
+    signInWithPopup
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-  // 🔴 REPLACE WITH YOUR REAL FIREBASE CONFIG
+  // 🔴 PUT YOUR REAL FIREBASE CONFIG HERE
   const firebaseConfig = {
-    apiKey: "PASTE_YOUR_API_KEY",
-    authDomain: "PASTE_YOUR_AUTH_DOMAIN",
-    projectId: "PASTE_YOUR_PROJECT_ID",
-    storageBucket: "PASTE_YOUR_STORAGE_BUCKET",
-    messagingSenderId: "PASTE_YOUR_SENDER_ID",
-    appId: "PASTE_YOUR_APP_ID"
+    apiKey: "PASTE_REAL_KEY",
+    authDomain: "PASTE_REAL_DOMAIN",
+    projectId: "PASTE_REAL_PROJECT_ID",
+    appId: "PASTE_REAL_APP_ID"
   };
 
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
-  const db = getFirestore(app);
   const provider = new GoogleAuthProvider();
 
-  const loginBox = document.getElementById("loginBox");
-  const appBox = document.getElementById("appBox");
-  const userInfo = document.getElementById("userInfo");
-  const responseBox = document.getElementById("response");
-
-  window.loginGoogle = async () => {
-    await signInWithPopup(auth, provider);
-  };
-
+  // ✅ ATTACH FUNCTIONS TO WINDOW (CRITICAL)
   window.loginEmail = async () => {
-    await signInWithEmailAndPassword(auth, email.value, password.value);
+    try {
+      await signInWithEmailAndPassword(
+        auth,
+        email.value,
+        password.value
+      );
+      status.innerText = "Login successful ✅";
+    } catch (e) {
+      status.innerText = e.message;
+    }
   };
 
   window.registerEmail = async () => {
-    await createUserWithEmailAndPassword(auth, email.value, password.value);
-  };
-
-  window.logout = async () => {
-    await signOut(auth);
-  };
-
-  onAuthStateChanged(auth, user => {
-    if (user) {
-      loginBox.classList.add("hidden");
-      appBox.classList.remove("hidden");
-      userInfo.innerText = user.email;
-    } else {
-      loginBox.classList.remove("hidden");
-      appBox.classList.add("hidden");
+    try {
+      await createUserWithEmailAndPassword(
+        auth,
+        email.value,
+        password.value
+      );
+      status.innerText = "Registration successful ✅";
+    } catch (e) {
+      status.innerText = e.message;
     }
-  });
+  };
 
-  window.askQuestion = async () => {
-    const q = question.value.trim();
-    if (!q) return;
-
-    responseBox.innerText = "Pixodra is thinking...";
-
-    await addDoc(collection(db, "questions"), {
-      email: auth.currentUser.email,
-      question: q,
-      createdAt: serverTimestamp()
-    });
-
-    responseBox.innerText = "Question saved successfully ✔";
-    question.value = "";
+  window.loginGoogle = async () => {
+    try {
+      await signInWithPopup(auth, provider);
+      status.innerText = "Google login successful ✅";
+    } catch (e) {
+      status.innerText = e.message;
+    }
   };
 </script>
 
