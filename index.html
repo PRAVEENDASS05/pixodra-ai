@@ -4,18 +4,19 @@
   <meta charset="UTF-8" />
   <title>Pixodra.ai</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
 
+  <!-- jsPDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
   <style>
-    /* Animations */
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(10px); }
       to { opacity: 1; transform: translateY(0); }
     }
-
-    .fade-in {
-      animation: fadeIn 0.4s ease-out;
-    }
+    .fade-in { animation: fadeIn 0.4s ease-out; }
 
     /* Typing dots */
     .typing span {
@@ -23,7 +24,6 @@
     }
     .typing span:nth-child(2) { animation-delay: .2s; }
     .typing span:nth-child(3) { animation-delay: .4s; }
-
     @keyframes blink {
       0% { opacity: .2; }
       20% { opacity: 1; }
@@ -37,10 +37,7 @@
       transition: 0.2s;
       font-size: 14px;
     }
-
-    .lang-btn:hover {
-      background: rgba(255,255,255,0.15);
-    }
+    .lang-btn:hover { background: rgba(255,255,255,0.15); }
 
     .active-lang {
       background: rgba(99,102,241,0.35);
@@ -100,8 +97,11 @@
 </div>
 
 <script>
+  const { jsPDF } = window.jspdf;
+
   let selectedLang = "english";
   let conversation = [];
+  let lastUserQuestion = "";
 
   function setLang(lang) {
     selectedLang = lang;
@@ -122,6 +122,7 @@
     const input = inputBox.value.trim();
     if (!input) return;
 
+    lastUserQuestion = input;
     const chat = document.getElementById("chat");
 
     // User message
@@ -134,15 +135,14 @@
     inputBox.value = "";
     chat.scrollTop = chat.scrollHeight;
 
-    // Greeting rule
+    // Greeting shortcut
     if (input.toLowerCase() === "hi") {
-      addBotMessage("Vanakkam! Ungalukku enna vendum? 😊");
+      addBotMessage("Vanakkam 😊 Ungaluku enna vendum?");
       return;
     }
 
     // Typing indicator
     const typingDiv = document.createElement("div");
-    typingDiv.className = "text-left";
     typingDiv.innerHTML = `
       <div class="inline-block bg-gray-700/40 px-3 py-2 rounded-xl typing">
         Pixodra typing<span>.</span><span>.</span><span>.</span>
@@ -162,9 +162,10 @@
       const data = await res.json();
       typingDiv.remove();
       addBotMessage(data.reply);
+      conversation.push(data.reply);
     } catch {
       typingDiv.remove();
-      addBotMessage("Something went wrong. Please try again.");
+      addBotMessage("Something went wrong. Try again.");
     }
   }
 
@@ -176,22 +177,44 @@
           ${text}
         </div>
       </div>`;
-    conversation.push(text);
     chat.scrollTop = chat.scrollHeight;
   }
 
   function makePDF() {
-    if (conversation.length === 0) {
+    if (!conversation.length) {
       alert("No content to export");
       return;
     }
 
-    const content = "PIXODRA.AI RESPONSES\n\n" + conversation.join("\n\n");
-    const blob = new Blob([content], { type: "application/pdf" });
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = "pixodra-responses.pdf";
-    link.click();
+    const doc = new jsPDF();
+    const date = new Date().toLocaleString();
+
+    // Header line (bold)
+    doc.setFont("Helvetica", "bold");
+    doc.setFontSize(12);
+    doc.text(
+      `Question: ${lastUserQuestion}   |   Date: ${date}   |   Language: ${selectedLang.toUpperCase()}`,
+      10,
+      15
+    );
+
+    // Content
+    doc.setFont("Helvetica", "normal");
+    doc.setFontSize(11);
+
+    let y = 25;
+    conversation.forEach(msg => {
+      const lines = doc.splitTextToSize(msg, 180);
+      doc.text(lines, 10, y);
+      y += lines.length * 6 + 6;
+
+      if (y > 270) {
+        doc.addPage();
+        y = 20;
+      }
+    });
+
+    doc.save("pixodra-response.pdf");
   }
 </script>
 
