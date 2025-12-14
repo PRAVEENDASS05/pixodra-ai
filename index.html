@@ -20,35 +20,25 @@
       background: radial-gradient(circle at top, #1e293b, #020617);
     }
 
-    /* Message animation */
-    .msg {
-      animation: slideFade .35s ease-out;
-    }
+    .msg { animation: slideFade .35s ease-out; }
     @keyframes slideFade {
       from { opacity:0; transform:translateY(12px) scale(.98) }
       to { opacity:1; transform:translateY(0) scale(1) }
     }
 
-    /* Typing dots */
-    .typing span {
-      animation: blink 1.4s infinite both;
-    }
+    .typing span { animation: blink 1.4s infinite both; }
     .typing span:nth-child(2){animation-delay:.2s}
     .typing span:nth-child(3){animation-delay:.4s}
     @keyframes blink {
       0%{opacity:.2} 20%{opacity:1} 100%{opacity:.2}
     }
 
-    /* Buttons */
-    .btn {
-      transition: all .25s ease;
-    }
+    .btn { transition: all .25s ease; }
     .btn:hover {
       transform: translateY(-1px);
       box-shadow: 0 10px 30px rgba(99,102,241,.25);
     }
 
-    /* Language pills */
     .lang {
       padding:6px 14px;
       border-radius:999px;
@@ -81,11 +71,14 @@
     </button>
   </div>
 
-  <!-- LANGUAGE -->
-  <div class="flex gap-3 mb-4">
+  <!-- LANGUAGE + TOOLS -->
+  <div class="flex gap-3 mb-4 flex-wrap">
     <button class="lang active" onclick="setLang('english',this)">English</button>
     <button class="lang" onclick="setLang('tamil',this)">Tamil</button>
     <button class="lang" onclick="setLang('tanglish',this)">Tanglish</button>
+
+    <!-- NEW TOOLS BUTTON -->
+    <button class="lang" onclick="openTools()">🧰 Tools</button>
   </div>
 
   <!-- CHAT CARD -->
@@ -142,6 +135,10 @@ function setLang(l, btn){
   }[l];
 }
 
+function openTools(){
+  alert("🧰 Tools coming soon!\n\n• PDF Tools\n• Study Tools\n• Symposium Tools");
+}
+
 async function send(){
   const text = input.value.trim();
   if(!text) return;
@@ -189,7 +186,6 @@ function bot(t){
   chat.scrollTop=chat.scrollHeight;
 }
 
-/* PDF logic unchanged */
 function makePDF(){
   if(!history.length){ alert("No content"); return; }
 
