@@ -1,153 +1,164 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Pixodra.ai</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<title>Pixodra.ai</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- Tailwind -->
-  <script src="https://cdn.tailwindcss.com"></script>
+<!-- Tailwind -->
+<script src="https://cdn.tailwindcss.com"></script>
 
-  <!-- Tamil-safe font -->
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Tamil&display=swap" rel="stylesheet">
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Noto+Sans+Tamil&display=swap" rel="stylesheet">
 
-  <!-- html2pdf -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<!-- PDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
-  <!-- Firebase (compat) -->
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<style>
+body{
+  font-family: Inter, system-ui, sans-serif;
+  background: radial-gradient(circle at top, #1e293b, #020617);
+  overflow-x:hidden;
+}
 
-  <style>
-    body{
-      font-family:system-ui,sans-serif;
-      background:radial-gradient(circle at top,#1e293b,#020617);
-    }
+/* message animation */
+.msg{
+  animation: pop .35s ease-out;
+}
+@keyframes pop{
+  from{opacity:0;transform:translateY(12px) scale(.96)}
+  to{opacity:1;transform:none}
+}
 
-    /* message animation */
-    .msg{
-      animation:msgIn .35s ease-out;
-    }
-    @keyframes msgIn{
-      from{opacity:0;transform:translateY(14px) scale(.96)}
-      to{opacity:1;transform:translateY(0) scale(1)}
-    }
+/* typing dots */
+.typing span{
+  animation: blink 1.4s infinite both;
+}
+.typing span:nth-child(2){animation-delay:.2s}
+.typing span:nth-child(3){animation-delay:.4s}
+@keyframes blink{
+  0%{opacity:.2}20%{opacity:1}100%{opacity:.2}
+}
 
-    /* typing dots */
-    .typing span{
-      animation:blink 1.4s infinite both;
-    }
-    .typing span:nth-child(2){animation-delay:.2s}
-    .typing span:nth-child(3){animation-delay:.4s}
-    @keyframes blink{
-      0%{opacity:.2}
-      20%{opacity:1}
-      100%{opacity:.2}
-    }
+/* buttons */
+.btn{
+  transition:.25s ease;
+}
+.btn:hover{
+  transform:translateY(-1px);
+  box-shadow:0 10px 25px rgba(99,102,241,.35);
+}
 
-    /* buttons */
-    .btn{
-      transition:all .25s ease;
-    }
-    .btn:hover{
-      transform:translateY(-1px);
-      box-shadow:0 10px 30px rgba(99,102,241,.25);
-    }
+/* language pill */
+.lang{
+  padding:6px 14px;
+  border-radius:999px;
+  background:rgba(255,255,255,.08);
+  transition:.25s;
+}
+.lang:hover{background:rgba(255,255,255,.18)}
+.active{
+  background:linear-gradient(135deg,#6366f1,#8b5cf6);
+  font-weight:600;
+}
 
-    /* language pills */
-    .lang{
-      padding:6px 14px;
-      border-radius:999px;
-      background:rgba(255,255,255,.08);
-      cursor:pointer;
-      transition:.25s;
-    }
-    .lang:hover{background:rgba(255,255,255,.15)}
-    .active{
-      background:linear-gradient(135deg,#6366f1,#8b5cf6);
-      font-weight:600;
-      box-shadow:0 0 0 2px rgba(99,102,241,.4);
-    }
-  </style>
+/* drawer items */
+.menu-item{
+  width:100%;
+  text-align:left;
+  padding:12px;
+  border-radius:14px;
+  background:rgba(255,255,255,.05);
+  margin-bottom:10px;
+  transition:.25s;
+}
+.menu-item:hover{
+  background:rgba(255,255,255,.15);
+}
+
+/* mobile touch glow */
+.touch-glow{
+  position:fixed;
+  width:160px;height:160px;
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(99,102,241,.35),transparent 70%);
+  pointer-events:none;
+  transform:translate(-50%,-50%);
+  animation:fade .6s ease-out forwards;
+}
+@keyframes fade{
+  to{opacity:0;transform:translate(-50%,-50%) scale(1.4)}
+}
+</style>
 </head>
 
 <body class="min-h-screen text-white">
 
-<!-- 🔐 FIREBASE AUTH GUARD -->
-<script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyDNCb1OOT1tjvC2G7fd3Lky10_FNbp3_oE",
-    authDomain: "pixodra-ai.firebaseapp.com",
-    projectId:"pixodra-ai",
-    appId: "1:435810946190:web:f7a0fd440179ee433d0ddf"
-  };
-
-  firebase.initializeApp(firebaseConfig);
-  const auth = firebase.auth();
-
-  auth.onAuthStateChanged(user=>{
-    if(!user){
-      window.location.href="index.html";
-    }
-  });
-</script>
-
 <div class="max-w-4xl mx-auto p-4">
 
-  <!-- HEADER -->
-  <div class="flex justify-between items-center mb-5">
-    <h1 class="text-3xl font-bold tracking-wide">
-      PIXODRA<span class="text-indigo-400">.AI</span>
-    </h1>
+<!-- TOP BAR -->
+<div class="flex items-center justify-between mb-4">
+  <button onclick="toggleMenu()" class="p-3 rounded-full bg-white/10">☰</button>
 
-    <div class="flex gap-2">
-      <button onclick="location.href='/symposium'"
-        class="btn px-4 py-2 rounded-xl bg-indigo-600/20 text-indigo-300">
-        🎓 Symposium Finder
-      </button>
+  <h1 class="text-xl font-bold tracking-wide">
+    PIXODRA<span class="text-indigo-400">.AI</span>
+  </h1>
 
-      <button onclick="logout()"
-        class="btn px-4 py-2 rounded-xl bg-red-500/20 text-red-300">
-        Logout
-      </button>
-    </div>
+  <div class="w-10"></div>
+</div>
+
+<!-- LANGUAGE + TOOLS -->
+<div class="flex gap-3 mb-4 flex-wrap">
+  <button class="lang active" onclick="setLang('english',this)">English</button>
+  <button class="lang" onclick="setLang('tamil',this)">Tamil</button>
+  <button class="lang" onclick="setLang('tanglish',this)">Tanglish</button>
+  <button class="lang" onclick="openTools()">🧰 Tools</button>
+</div>
+
+<!-- CHAT CARD -->
+<div class="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl shadow-2xl p-4 sm:p-6">
+  <div id="chat" class="space-y-4 mb-4 max-h-[60vh] overflow-y-auto"></div>
+
+  <textarea id="input" rows="3"
+    class="w-full p-4 rounded-2xl bg-gray-900/80 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+    placeholder="Ask Pixodra anything…"></textarea>
+
+  <div class="flex gap-3 mt-4">
+    <button onclick="send()" class="btn flex-1 bg-white text-black py-3 rounded-2xl font-semibold">
+      Send
+    </button>
+    <button onclick="makePDF()" class="btn flex-1 bg-indigo-600/30 py-3 rounded-2xl">
+      Make PDF
+    </button>
+  </div>
+</div>
+
+<p class="text-xs text-center text-gray-400 mt-4">
+  Pixodra-ai (Beta)
+</p>
+</div>
+
+<!-- OVERLAY -->
+<div id="overlay" onclick="toggleMenu()" class="fixed inset-0 bg-black/40 hidden z-40"></div>
+
+<!-- DRAWER -->
+<div id="menu" class="fixed top-0 left-0 h-full w-72 bg-[#0f172a] transform -translate-x-full transition-transform duration-300 z-50 p-5 flex flex-col">
+
+  <h2 class="text-lg font-semibold mb-4">Pixodra.ai</h2>
+
+  <button onclick="newChat()" class="menu-item">➕ New Chat</button>
+  <button onclick="location.href='/symposium.html'" class="menu-item">🎓 Symposium Finder</button>
+
+  <hr class="my-4 border-white/10">
+
+  <div class="text-sm text-gray-300 mb-4">
+    <div id="userName">User</div>
+    <div id="userEmail" class="text-xs opacity-70">email</div>
   </div>
 
-  <!-- LANGUAGE + TOOLS -->
-  <div class="flex gap-3 mb-4 flex-wrap">
-    <button class="lang active" onclick="setLang('english',this)">English</button>
-    <button class="lang" onclick="setLang('tamil',this)">Tamil</button>
-    <button class="lang" onclick="setLang('tanglish',this)">Tanglish</button>
-    <button class="lang" onclick="openTools()">🧰 Tools</button>
-  </div>
-
-  <!-- CHAT CARD -->
-  <div class="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl shadow-2xl p-4 sm:p-6">
-
-    <div id="chat"
-      class="space-y-4 mb-4 max-h-[60vh] overflow-y-auto pr-1"></div>
-
-    <textarea id="input" rows="3"
-      class="w-full p-4 rounded-2xl bg-gray-900/80 border border-gray-700
-      focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
-      placeholder="Ask Pixodra anything…"></textarea>
-
-    <div class="flex gap-3 mt-4">
-      <button onclick="send()"
-        class="btn flex-1 bg-white text-black py-3 rounded-2xl font-semibold">
-        Send
-      </button>
-
-      <button onclick="makePDF()"
-        class="btn flex-1 bg-indigo-600/30 py-3 rounded-2xl">
-        Make PDF
-      </button>
-    </div>
-  </div>
-
-  <p class="text-xs text-center text-gray-400 mt-4">
-    Pixodra-ai (Beta)
-  </p>
+  <button onclick="logout()" class="mt-auto bg-red-500/20 text-red-300 py-2 rounded-xl">
+    Logout
+  </button>
 </div>
 
 <script>
@@ -155,119 +166,101 @@ let lang="english";
 let history=[];
 let question="";
 
+/* MENU */
+function toggleMenu(){
+  menu.classList.toggle("-translate-x-full");
+  overlay.classList.toggle("hidden");
+}
+
+/* LANG */
 function setLang(l,btn){
   lang=l;
   document.querySelectorAll(".lang").forEach(b=>b.classList.remove("active"));
   btn.classList.add("active");
-
-  input.placeholder={
-    english:"Ask Pixodra anything…",
-    tamil:"Ungal kelviyai inge type pannunga…",
-    tanglish:"Ungal question-ah inga type pannunga…"
-  }[l];
 }
 
-function openTools(){
-  alert(" Tools coming soon!\n\n• Study tools\n• PDF tools\n• Symposium tools");
-}
-
+/* CHAT */
 async function send(){
   const text=input.value.trim();
-  if(!text)return;
-
+  if(!text) return;
   question=text;
 
   chat.innerHTML+=`
-    <div class="text-right msg">
-      <div class="inline-block bg-indigo-600/30 px-4 py-2 rounded-2xl">
-        ${text}
-      </div>
+    <div class="msg text-right">
+      <div class="inline-block bg-indigo-600/30 px-4 py-2 rounded-2xl">${text}</div>
     </div>`;
   input.value="";
   chat.scrollTop=chat.scrollHeight;
 
-  if(text.toLowerCase()==="hi"){
-    bot("Vanakkam  Ungalukku enna vendum?");
+  if(text.toLowerCase()=="hi"){
+    bot("Vanakkam 😊 Ungalukku enna vendum?");
     return;
   }
 
-  const typing=document.createElement("div");
-  typing.innerHTML=`
-    <div class="msg inline-block bg-gray-700/40 px-4 py-2 rounded-2xl typing">
-      Pixodra typing<span>.</span><span>.</span><span>.</span>
-    </div>`;
-  chat.appendChild(typing);
+  const t=document.createElement("div");
+  t.innerHTML=`<div class="msg typing bg-gray-700/40 px-4 py-2 rounded-2xl">
+    Pixodra typing<span>.</span><span>.</span><span>.</span>
+  </div>`;
+  chat.appendChild(t);
 
   const r=await fetch("/api/ask",{
     method:"POST",
-    headers:{ "Content-Type":"application/json" },
-    body:JSON.stringify({ message:`[${lang}] ${text}` })
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({message:`[${lang}] ${text}`})
   });
-
   const d=await r.json();
-  typing.remove();
+  t.remove();
   bot(d.reply);
   history.push(d.reply);
 }
 
 function bot(t){
-  chat.innerHTML+=`
-    <div class="msg bg-gray-700/50 px-4 py-2 rounded-2xl">
-      ${t}
-    </div>`;
+  chat.innerHTML+=`<div class="msg bg-gray-700/50 px-4 py-2 rounded-2xl">${t}</div>`;
   chat.scrollTop=chat.scrollHeight;
 }
 
+/* PDF */
 function makePDF(){
-  if(!history.length){alert("No content");return;}
-
-  const font=lang==="tamil"
-    ? "'Noto Sans Tamil', sans-serif"
-    : "serif";
-
-  const today=new Date().toLocaleDateString();
-
+  if(!history.length) return alert("No content");
   const box=document.createElement("div");
   box.style.padding="20mm";
-  box.style.fontFamily=font;
   box.style.background="white";
   box.style.color="black";
-  box.style.lineHeight="1.8";
-
   box.innerHTML=`
-    <div style="text-align:center;margin-bottom:20px">
-      <div style="text-decoration:underline;font-weight:600">
-        Date: ${today} | Language: ${lang.toUpperCase()} | Version: Pixodra-ai (Beta)
-      </div>
-      <div style="font-weight:bold;margin-top:10px">
-        Question: ${question}
-      </div>
-    </div>
+    <h2 style="text-align:center">Pixodra-ai (Beta)</h2>
+    <p><b>Question:</b> ${question}</p>
     ${history.map(h=>`<p>${h}</p>`).join("")}
   `;
   document.body.appendChild(box);
-
-  html2pdf().from(box).toPdf().get('pdf').then(pdf=>{
-    const pages=pdf.internal.getNumberOfPages();
-    const h=pdf.internal.pageSize.height;
-    const w=pdf.internal.pageSize.width;
-
-    for(let i=1;i<=pages;i++){
-      pdf.setPage(i);
-      pdf.setFont("Courier","italic");
-      pdf.setFontSize(10);
-      pdf.text("Thanks for using Pixodra.ai",15,h-10);
-      pdf.text(`Page ${i} of ${pages}`,w-45,h-10);
-    }
-  }).save("pixodra-response.pdf")
-    .then(()=>box.remove());
+  html2pdf().from(box).save("pixodra.pdf").then(()=>box.remove());
 }
 
+/* TOOLS */
+function openTools(){
+  alert("Tools coming soon 🚀");
+}
+
+/* AUTH CHECK */
+firebase.auth().onAuthStateChanged(u=>{
+  if(!u) location.href="/login.html";
+  userName.innerText=u.displayName;
+  userEmail.innerText=u.email;
+});
+
+/* LOGOUT */
 function logout(){
-  auth.signOut().then(()=>{
-    window.location.href="index.html";
-  });
+  firebase.auth().signOut().then(()=>location.href="/login.html");
 }
+
+/* MOBILE TOUCH GLOW */
+document.addEventListener("touchstart",e=>{
+  const g=document.createElement("div");
+  g.className="touch-glow";
+  g.style.left=e.touches[0].clientX+"px";
+  g.style.top=e.touches[0].clientY+"px";
+  document.body.appendChild(g);
+  setTimeout(()=>g.remove(),600);
+});
 </script>
 
 </body>
