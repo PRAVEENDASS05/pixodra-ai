@@ -2,90 +2,135 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Pixodra.ai Login</title>
+  <title>Pixodra.ai</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
+  <!-- Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
 
   <!-- Firebase COMPAT SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+
+  <style>
+    /* Smooth fade + scale entry */
+    .fade-in {
+      animation: fadeIn 1.2s ease forwards;
+      opacity: 0;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.96); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    /* Cursor follower */
+    .cursor-glow {
+      position: fixed;
+      width: 140px;
+      height: 140px;
+      border-radius: 50%;
+      pointer-events: none;
+      background: radial-gradient(circle, rgba(99,102,241,0.35), transparent 60%);
+      transform: translate(-50%, -50%);
+      z-index: 0;
+      transition: transform 0.08s linear;
+    }
+
+    /* Mobile tap glow */
+    .tap-glow {
+      position: fixed;
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      pointer-events: none;
+      background: radial-gradient(circle, rgba(236,72,153,0.45), transparent 60%);
+      animation: tap 0.6s ease-out forwards;
+      z-index: 0;
+    }
+    @keyframes tap {
+      from { transform: scale(0.4); opacity: 0.9; }
+      to { transform: scale(1.4); opacity: 0; }
+    }
+  </style>
 </head>
 
-<body class="min-h-screen bg-slate-900 flex items-center justify-center text-white">
+<body class="relative min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-black overflow-hidden text-white">
 
-  <div class="bg-slate-800 p-6 rounded-xl w-full max-w-md shadow-xl">
-    <h1 class="text-2xl font-bold text-center mb-4">Pixodra.ai</h1>
+  <!-- Cursor Glow -->
+  <div id="cursor" class="cursor-glow hidden md:block"></div>
 
-    <input id="email" type="email" placeholder="Enter your email"
-      class="w-full p-3 mb-4 rounded bg-slate-700 focus:outline-none" />
+  <!-- Center Card -->
+  <div class="relative z-10 min-h-screen flex items-center justify-center px-4">
+    <div class="fade-in bg-slate-900/80 backdrop-blur-xl border border-slate-700 p-8 rounded-3xl shadow-2xl w-full max-w-md text-center">
 
-    <button onclick="sendLoginLink()"
-      class="w-full bg-blue-600 py-2 rounded mb-3 hover:bg-blue-700">
-      Send Login Link
-    </button>
+      <h1 class="text-4xl font-extrabold mb-2 tracking-wide">PIXODRA.AI</h1>
+      <p class="text-gray-400 mb-8">Your friendly AI companion 🤖</p>
 
-    <div class="text-center text-gray-400 my-3">OR</div>
+      <!-- Google Login -->
+      <button
+        onclick="loginGoogle()"
+        class="group w-full bg-white text-black py-4 rounded-xl font-semibold text-lg flex items-center justify-center gap-3 hover:scale-[1.03] transition-all duration-300 shadow-lg"
+      >
+        <svg class="w-5 h-5" viewBox="0 0 533.5 544.3">
+          <path fill="#4285f4" d="M533.5 278.4c0-17.4-1.6-34.1-4.6-50.4H272v95.4h146.9c-6.3 34.1-25 63-53.2 82.3v68h85.9c50.2-46.2 82-114.4 82-195.3z"/>
+          <path fill="#34a853" d="M272 544.3c72.6 0 133.6-24.1 178.1-65.6l-85.9-68c-23.9 16.1-54.4 25.6-92.2 25.6-70.9 0-131-47.9-152.4-112.1h-89.7v70.4C73.7 475.2 166.4 544.3 272 544.3z"/>
+          <path fill="#fbbc04" d="M119.6 324.2c-10.1-30.1-10.1-62.6 0-92.7V161H29.9c-39.4 78.7-39.4 171.6 0 250.3l89.7-70.4z"/>
+          <path fill="#ea4335" d="M272 107.7c39.5-.6 77.4 13.9 106.2 40.5l79-79C409.6 24.6 345.4-1.2 272 0 166.4 0 73.7 69.1 29.9 161l89.7 70.5C141 155.6 201.1 107.7 272 107.7z"/>
+        </svg>
+        Continue with Google
+      </button>
 
-    <button onclick="loginGoogle()"
-      class="w-full bg-white text-black py-2 rounded hover:bg-gray-200">
-      Continue with Google
-    </button>
+      <p id="status" class="mt-6 text-sm text-gray-400"></p>
 
-    <p id="status" class="mt-4 text-sm text-center text-green-400"></p>
+      <p class="mt-8 text-xs text-gray-500">
+        Version: Pixodra-ai (Beta)
+      </p>
+    </div>
   </div>
 
 <script>
-  // 🔑 PASTE YOUR REAL FIREBASE CONFIG HERE
+  // 🔑 Firebase config (PASTE YOUR REAL ONE)
   const firebaseConfig = {
-    apiKey:"AIzaSyDNCb1OOT1tjvC2G7fd3Lky10_FNbp3_oE",
-    authDomain:  "pixodra-ai.firebaseapp.com",
+    apiKey: "AIzaSyDNCb1OOT1tjvC2G7fd3Lky10_FNbp3_oE",
+    authDomain: "pixodra-ai.firebaseapp.com",
     projectId: "pixodra-ai",
-    appId:"1:435810946190:web:f7a0fd440179ee433d0ddf"
+    appId: "1:435810946190:web:f7a0fd440179ee433d0ddf"
   };
 
   firebase.initializeApp(firebaseConfig);
+
   const auth = firebase.auth();
   const provider = new firebase.auth.GoogleAuthProvider();
 
-  function sendLoginLink() {
-    const emailValue = email.value;
-
-    if (!emailValue) {
-      status.innerText = "Please enter email";
-      return;
-    }
-
-    const actionCodeSettings = {
-      url: window.location.origin + "/ai.html",
-      handleCodeInApp: true
-    };
-
-    auth.sendSignInLinkToEmail(emailValue, actionCodeSettings)
-      .then(() => {
-        window.localStorage.setItem("pixodraEmail", emailValue);
-        status.innerText = "Login link sent! Check your email 📩";
-      })
-      .catch(error => {
-        status.innerText = error.message;
-      });
-  }
-
   function loginGoogle() {
     auth.signInWithPopup(provider)
-      .then(() => {
-        window.location.href = "ai.html";
-      })
-      .catch(e => status.innerText = e.message);
+      .then(() => window.location.href = "ai.html")
+      .catch(e => document.getElementById("status").innerText = e.message);
   }
 
-  // Auto redirect if already logged in
   auth.onAuthStateChanged(user => {
-    if (user) {
-      window.location.href = "ai.html";
-    }
+    if (user) window.location.href = "ai.html";
+  });
+
+  /* Cursor follower (desktop) */
+  const cursor = document.getElementById("cursor");
+  document.addEventListener("mousemove", e => {
+    cursor.style.left = e.clientX + "px";
+    cursor.style.top = e.clientY + "px";
+  });
+
+  /* Touch glow (mobile) */
+  document.addEventListener("touchstart", e => {
+    const touch = e.touches[0];
+    const glow = document.createElement("div");
+    glow.className = "tap-glow";
+    glow.style.left = touch.clientX - 60 + "px";
+    glow.style.top = touch.clientY - 60 + "px";
+    document.body.appendChild(glow);
+    setTimeout(() => glow.remove(), 600);
   });
 </script>
 
 </body>
 </html>
+ 
