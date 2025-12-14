@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Pixodra AI</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+</head>
+
+<body class="bg-slate-900 text-white min-h-screen flex flex-col items-center justify-center">
+
+<h1 class="text-3xl font-bold mb-4">Welcome to Pixodra AI 🤖</h1>
+<p id="user" class="mb-6 text-gray-400"></p>
+
+<button onclick="logout()" class="bg-red-500 px-4 py-2 rounded">
+  Logout
+</button>
+
+<script>
+  const firebaseConfig = {
+    apiKey:"AIzaSyDNCb1OOT1tjvC2G7fd3Lky10_FNbp3_oE",
+    authDomain: "pixodra-ai.firebaseapp.com",
+    projectId: "pixodra-ai",
+    appId: "1:435810946190:web:f7a0fd440179ee433d0ddf"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+
+  auth.onAuthStateChanged(user => {
+    if (!user) {
+      window.location.href = "index.html";
+    } else {
+      document.getElementById("user").innerText =
+        "Logged in as: " + user.email;
+    }
+  });
+
+  function logout() {
+    auth.signOut().then(() => {
+      window.location.href = "index.html";
+    });
+  }
+</script>
+
+</body>
+</html>
