@@ -8,18 +8,15 @@
   <!-- Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
 
-  <!-- jsPDF -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
-  <!-- Tamil Unicode Font -->
-  <script src="https://cdn.jsdelivr.net/gh/parsavar/jspdf-fonts@master/fonts/NotoSansTamil-Regular.js"></script>
+  <!-- html2pdf (Tamil-safe) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
   <style>
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(10px); }
       to { opacity: 1; transform: translateY(0); }
     }
-    .fade-in { animation: fadeIn 0.4s ease-out; }
+    .fade-in { animation: fadeIn 0.35s ease-out; }
 
     .typing span {
       animation: blink 1.4s infinite both;
@@ -55,33 +52,38 @@
   <!-- HEADER -->
   <div class="flex justify-between items-center mb-4">
     <h1 class="text-3xl font-bold">PIXODRA.AI</h1>
-    <button onclick="window.location.href='/symposium'"
+    <button
+      onclick="window.location.href='/symposium'"
       class="px-4 py-2 rounded-xl bg-indigo-600/20 text-indigo-400 hover:bg-indigo-600/30">
       🎓 Symposium Finder
     </button>
   </div>
 
-  <!-- LANGUAGE -->
+  <!-- LANGUAGE SELECT -->
   <div class="flex gap-3 mb-4">
     <button id="english" class="lang-btn active-lang" onclick="setLang('english')">English</button>
     <button id="tamil" class="lang-btn" onclick="setLang('tamil')">Tamil</button>
     <button id="tanglish" class="lang-btn" onclick="setLang('tanglish')">Tanglish</button>
   </div>
 
-  <!-- CHAT -->
+  <!-- CHAT BOX -->
   <div class="bg-[#0f172a]/90 rounded-2xl shadow-xl p-4">
     <div id="chat" class="space-y-3 mb-4 max-h-[55vh] overflow-y-auto"></div>
 
-    <textarea id="userInput" rows="3"
+    <textarea
+      id="userInput"
+      rows="3"
       placeholder="Ask Pixodra anything…"
       class="w-full p-3 rounded-xl bg-gray-800 border border-gray-700 focus:outline-none"></textarea>
 
     <div class="flex gap-3 mt-3">
-      <button onclick="askPixodra()"
+      <button
+        onclick="askPixodra()"
         class="flex-1 bg-white text-black py-2 rounded-xl font-semibold">
         Send
       </button>
-      <button onclick="makePDF()"
+      <button
+        onclick="makePDF()"
         class="flex-1 bg-white/15 py-2 rounded-xl">
         Make PDF
       </button>
@@ -94,28 +96,26 @@
 </div>
 
 <script>
-  const { jsPDF } = window.jspdf;
-
   let selectedLang = "english";
   let conversation = [];
   let lastUserQuestion = "";
 
-  function setLang(lang){
+  function setLang(lang) {
     selectedLang = lang;
-    document.querySelectorAll(".lang-btn").forEach(b=>b.classList.remove("active-lang"));
+    document.querySelectorAll(".lang-btn").forEach(b => b.classList.remove("active-lang"));
     document.getElementById(lang).classList.add("active-lang");
 
-    const p = {
+    const placeholders = {
+      english: "Ask Pixodra anything…",
       tamil: "Ungal kelviyai inge type pannunga…",
-      tanglish: "Ungal question-ah inga type pannunga…",
-      english: "Ask Pixodra anything…"
+      tanglish: "Ungal question-ah inga type pannunga…"
     };
-    userInput.placeholder = p[lang];
+    userInput.placeholder = placeholders[lang];
   }
 
-  async function askPixodra(){
+  async function askPixodra() {
     const input = userInput.value.trim();
-    if(!input) return;
+    if (!input) return;
 
     lastUserQuestion = input;
 
@@ -123,11 +123,11 @@
       <div class="text-right fade-in">
         <div class="inline-block bg-indigo-600/20 px-3 py-2 rounded-xl">${input}</div>
       </div>`;
-    userInput.value="";
+    userInput.value = "";
     chat.scrollTop = chat.scrollHeight;
 
-    if(input.toLowerCase()==="hi"){
-      addBot("Vanakkam 😊 Ungaluku enna vendum?");
+    if (input.toLowerCase() === "hi") {
+      addBot("Vanakkam 😊 Ungalukku enna vendum?");
       return;
     }
 
@@ -139,23 +139,23 @@
     chat.appendChild(typing);
     chat.scrollTop = chat.scrollHeight;
 
-    try{
-      const res = await fetch("/api/ask",{
-        method:"POST",
-        headers:{ "Content-Type":"application/json" },
-        body:JSON.stringify({ message:`[${selectedLang}] ${input}` })
+    try {
+      const res = await fetch("/api/ask", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: `[${selectedLang}] ${input}` })
       });
       const data = await res.json();
       typing.remove();
       addBot(data.reply);
       conversation.push(data.reply);
-    }catch{
+    } catch {
       typing.remove();
       addBot("Something went wrong. Try again.");
     }
   }
 
-  function addBot(text){
+  function addBot(text) {
     chat.innerHTML += `
       <div class="text-left fade-in">
         <div class="inline-block bg-gray-700/50 px-3 py-2 rounded-xl">${text}</div>
@@ -163,64 +163,53 @@
     chat.scrollTop = chat.scrollHeight;
   }
 
-  function makePDF(){
-    if(!conversation.length) return alert("No content to export");
-
-    const doc = new jsPDF();
-    const marginLeft = 15;
-    const marginRight = 180;
-    const top = 20;
-    const bottom = 20;
-    const pageH = doc.internal.pageSize.height;
-    let y = top + 10;
-
-    // FONT
-    if(selectedLang==="tamil"){
-      doc.addFileToVFS("Tamil.ttf", NotoSansTamilRegular);
-      doc.addFont("Tamil.ttf","Tamil","normal");
-      doc.setFont("Tamil");
-    }else{
-      doc.setFont("Helvetica");
+  /* ---------- PDF (HTML → PDF, Tamil SAFE) ---------- */
+  function makePDF() {
+    if (!conversation.length) {
+      alert("No content to export");
+      return;
     }
 
     const date = new Date().toLocaleString();
 
-    doc.setFontSize(12);
-    doc.setFont(undefined,"bold");
-    doc.text(
-      `Question: ${lastUserQuestion} | Date: ${date} | Language: ${selectedLang.toUpperCase()}`,
-      marginLeft,
-      top
-    );
+    const pdfContent = document.createElement("div");
+    pdfContent.style.padding = "30px";
+    pdfContent.style.fontFamily = "serif";
+    pdfContent.style.lineHeight = "1.7";
 
-    doc.setFont(undefined,"normal");
-    doc.setFontSize(11);
+    pdfContent.innerHTML = `
+      <div style="font-weight:bold; margin-bottom:20px;">
+        Question: ${lastUserQuestion}
+        &nbsp;|&nbsp; Date: ${date}
+        &nbsp;|&nbsp; Language: ${selectedLang.toUpperCase()}
+      </div>
 
-    conversation.forEach(msg=>{
-      const lines = doc.splitTextToSize(msg, marginRight);
-      lines.forEach(line=>{
-        if(y > pageH - bottom){
-          footer(doc);
-          doc.addPage();
-          y = top;
-        }
-        doc.text(line, marginLeft, y);
-        y+=6;
-      });
-      y+=4;
-    });
+      ${conversation.map(msg => `<p>${msg}</p>`).join("")}
 
-    footer(doc);
-    doc.save("pixodra-response.pdf");
-  }
+      <div style="
+        position: fixed;
+        bottom: 20px;
+        left: 30px;
+        font-family: monospace;
+        font-size: 10px;
+        color: #777;
+      ">
+        Thanks for using Pixodra.ai
+      </div>
+    `;
 
-  function footer(doc){
-    const h = doc.internal.pageSize.height;
-    doc.setFont("Courier","italic");
-    doc.setFontSize(9);
-    doc.setTextColor(150);
-    doc.text("Thanks for using Pixodra.ai", 15, h-10);
-    doc.setTextColor(0);
+    document.body.appendChild(pdfContent);
+
+    html2pdf()
+      .set({
+        margin: [20, 15, 25, 15],
+        filename: "pixodra-response.pdf",
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: "mm", format: "a4", orientation: "portrait" }
+      })
+      .from(pdfContent)
+      .save()
+      .then(() => pdfContent.remove());
   }
 </script>
 
