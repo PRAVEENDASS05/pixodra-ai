@@ -1,177 +1,134 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>Pixodra.ai</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-
-  <!-- Tailwind -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://cdn.tailwindcss.com"></script>
-
-  <!-- Firebase SDK -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import {
-      getAuth,
-      GoogleAuthProvider,
-      signInWithPopup,
-      signInWithEmailAndPassword,
-      createUserWithEmailAndPassword,
-      onAuthStateChanged,
-      signOut
-    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-
-    import {
-      getFirestore,
-      collection,
-      addDoc,
-      serverTimestamp
-    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-    // 🔥 REPLACE WITH YOUR FIREBASE CONFIG
-    const firebaseConfig = {
-      apiKey: "YOUR_API_KEY",
-      authDomain: "YOUR_PROJECT.firebaseapp.com",
-      projectId: "YOUR_PROJECT_ID",
-      storageBucket: "YOUR_PROJECT.appspot.com",
-      messagingSenderId: "XXXX",
-      appId: "XXXX"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-    const provider = new GoogleAuthProvider();
-
-    window.loginGoogle = async () => {
-      await signInWithPopup(auth, provider);
-    };
-
-    window.loginEmail = async () => {
-      const email = emailInput.value;
-      const password = passwordInput.value;
-      await signInWithEmailAndPassword(auth, email, password);
-    };
-
-    window.registerEmail = async () => {
-      const email = emailInput.value;
-      const password = passwordInput.value;
-      await createUserWithEmailAndPassword(auth, email, password);
-    };
-
-    window.logoutUser = async () => {
-      await signOut(auth);
-    };
-
-    onAuthStateChanged(auth, user => {
-      if (user) {
-        authBox.classList.add("hidden");
-        appBox.classList.remove("hidden");
-        userName.innerText = user.displayName || user.email;
-      } else {
-        authBox.classList.remove("hidden");
-        appBox.classList.add("hidden");
-      }
-    });
-
-    window.saveQuestion = async (question, language) => {
-      const user = auth.currentUser;
-      if (!user) return;
-
-      await addDoc(collection(db, "questions"), {
-        name: user.displayName || "Anonymous",
-        email: user.email,
-        question,
-        language,
-        createdAt: serverTimestamp()
-      });
-    };
-  </script>
 </head>
 
-<body class="bg-gradient-to-br from-slate-900 to-black min-h-screen text-white flex items-center justify-center">
+<body class="min-h-screen bg-gradient-to-br from-slate-900 to-black flex items-center justify-center text-white">
 
-<!-- AUTH BOX -->
-<div id="authBox" class="w-full max-w-md p-8 bg-slate-900 rounded-2xl shadow-xl">
-  <h2 class="text-2xl font-bold text-center mb-6">Login to Pixodra.ai</h2>
+<!-- LOGIN BOX -->
+<div id="loginBox" class="w-full max-w-md bg-slate-900 p-6 rounded-xl shadow-xl">
+  <h2 class="text-2xl font-bold text-center mb-4">Pixodra.ai Login</h2>
 
-  <input id="emailInput" type="email" placeholder="Email"
-    class="w-full mb-3 p-3 rounded bg-slate-800"/>
+  <input id="email" type="email" placeholder="Email"
+    class="w-full p-3 mb-3 rounded bg-slate-800">
 
-  <input id="passwordInput" type="password" placeholder="Password"
-    class="w-full mb-4 p-3 rounded bg-slate-800"/>
+  <input id="password" type="password" placeholder="Password"
+    class="w-full p-3 mb-4 rounded bg-slate-800">
 
-  <button onclick="loginEmail()" class="w-full bg-blue-600 py-2 rounded mb-2">Login</button>
-  <button onclick="registerEmail()" class="w-full bg-gray-700 py-2 rounded mb-4">Register</button>
+  <button onclick="loginEmail()"
+    class="w-full bg-blue-600 py-2 rounded mb-2">
+    Login
+  </button>
 
-  <button onclick="loginGoogle()" class="w-full bg-white text-black py-2 rounded">
+  <button onclick="registerEmail()"
+    class="w-full bg-gray-700 py-2 rounded mb-3">
+    Register
+  </button>
+
+  <button onclick="loginGoogle()"
+    class="w-full bg-white text-black py-2 rounded">
     Continue with Google
   </button>
 </div>
 
-<!-- MAIN APP -->
-<div id="appBox" class="hidden w-full max-w-3xl p-6 bg-slate-900 rounded-2xl shadow-xl">
-
-  <!-- HEADER -->
+<!-- APP BOX -->
+<div id="appBox" class="hidden w-full max-w-2xl bg-slate-900 p-6 rounded-xl shadow-xl">
   <div class="flex justify-between items-center mb-4">
     <h1 class="text-xl font-bold">PIXODRA.AI</h1>
-    <div class="text-sm">
-      👤 <span id="userName"></span>
-      <button onclick="logoutUser()" class="ml-3 text-red-400">Logout</button>
+    <div>
+      <span id="userInfo" class="text-sm"></span>
+      <button onclick="logout()" class="ml-3 text-red-400">Logout</button>
     </div>
   </div>
 
-  <!-- LANGUAGE -->
-  <div class="flex gap-2 mb-3">
-    <button onclick="setLang('ENGLISH')" class="px-3 py-1 bg-slate-700 rounded">English</button>
-    <button onclick="setLang('TAMIL')" class="px-3 py-1 bg-slate-700 rounded">Tamil</button>
-    <button onclick="setLang('TANGLISH')" class="px-3 py-1 bg-slate-700 rounded">Tanglish</button>
-  </div>
-
-  <!-- CHAT -->
-  <textarea id="question" rows="4"
-    placeholder="Ask Pixodra..."
+  <textarea id="question"
+    placeholder="Ask Pixodra something..."
+    rows="4"
     class="w-full p-4 bg-slate-800 rounded mb-3"></textarea>
 
-  <div class="flex gap-2">
-    <button onclick="askPixodra()" class="flex-1 bg-white text-black py-2 rounded">Ask</button>
-    <button onclick="makePDF()" class="bg-slate-700 px-4 rounded">Make PDF</button>
-  </div>
+  <button onclick="askQuestion()"
+    class="w-full bg-white text-black py-2 rounded">
+    Ask Pixodra
+  </button>
 
-  <div id="reply" class="mt-4 text-slate-300"></div>
+  <p id="response" class="mt-4 text-slate-300"></p>
 </div>
 
-<script>
-  let language = "ENGLISH";
-  let lastAnswer = "";
+<!-- FIREBASE -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider,
+           signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut }
+    from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { getFirestore, collection, addDoc, serverTimestamp }
+    from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-  function setLang(l) {
-    language = l;
-  }
+  // 🔴 REPLACE WITH YOUR REAL FIREBASE CONFIG
+  const firebaseConfig = {
+    apiKey: "PASTE_YOUR_API_KEY",
+    authDomain: "PASTE_YOUR_AUTH_DOMAIN",
+    projectId: "PASTE_YOUR_PROJECT_ID",
+    storageBucket: "PASTE_YOUR_STORAGE_BUCKET",
+    messagingSenderId: "PASTE_YOUR_SENDER_ID",
+    appId: "PASTE_YOUR_APP_ID"
+  };
 
-  async function askPixodra() {
-    const q = question.value;
-    reply.innerText = "Pixodra is thinking...";
-    await saveQuestion(q, language);
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+  const provider = new GoogleAuthProvider();
 
-    const res = await fetch("/api/ask", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message: q, language })
+  const loginBox = document.getElementById("loginBox");
+  const appBox = document.getElementById("appBox");
+  const userInfo = document.getElementById("userInfo");
+  const responseBox = document.getElementById("response");
+
+  window.loginGoogle = async () => {
+    await signInWithPopup(auth, provider);
+  };
+
+  window.loginEmail = async () => {
+    await signInWithEmailAndPassword(auth, email.value, password.value);
+  };
+
+  window.registerEmail = async () => {
+    await createUserWithEmailAndPassword(auth, email.value, password.value);
+  };
+
+  window.logout = async () => {
+    await signOut(auth);
+  };
+
+  onAuthStateChanged(auth, user => {
+    if (user) {
+      loginBox.classList.add("hidden");
+      appBox.classList.remove("hidden");
+      userInfo.innerText = user.email;
+    } else {
+      loginBox.classList.remove("hidden");
+      appBox.classList.add("hidden");
+    }
+  });
+
+  window.askQuestion = async () => {
+    const q = question.value.trim();
+    if (!q) return;
+
+    responseBox.innerText = "Pixodra is thinking...";
+
+    await addDoc(collection(db, "questions"), {
+      email: auth.currentUser.email,
+      question: q,
+      createdAt: serverTimestamp()
     });
 
-    const data = await res.json();
-    lastAnswer = data.reply;
-    reply.innerText = data.reply;
-  }
-
-  function makePDF() {
-    const blob = new Blob([lastAnswer], { type: "application/pdf" });
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = "Pixodra.pdf";
-    link.click();
-  }
+    responseBox.innerText = "Question saved successfully ✔";
+    question.value = "";
+  };
 </script>
 
 </body>
