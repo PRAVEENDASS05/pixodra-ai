@@ -7,21 +7,56 @@
   <script src="https://cdn.tailwindcss.com"></script>
 
   <style>
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(20px); }
+    /* Animations */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
       to { opacity: 1; transform: translateY(0); }
     }
-    .fade-up { animation: fadeUp 0.6s ease-out; }
+
+    .fade-in {
+      animation: fadeIn 0.4s ease-out;
+    }
+
+    /* Typing dots */
+    .typing span {
+      animation: blink 1.4s infinite both;
+    }
+    .typing span:nth-child(2) { animation-delay: .2s; }
+    .typing span:nth-child(3) { animation-delay: .4s; }
+
+    @keyframes blink {
+      0% { opacity: .2; }
+      20% { opacity: 1; }
+      100% { opacity: .2; }
+    }
+
+    .lang-btn {
+      padding: 6px 14px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.08);
+      transition: 0.2s;
+      font-size: 14px;
+    }
+
+    .lang-btn:hover {
+      background: rgba(255,255,255,0.15);
+    }
+
+    .active-lang {
+      background: rgba(99,102,241,0.35);
+      color: #e0e7ff;
+      font-weight: 600;
+      box-shadow: 0 0 0 2px rgba(99,102,241,0.4);
+    }
   </style>
 </head>
 
 <body class="bg-gradient-to-br from-slate-900 via-gray-900 to-black min-h-screen text-white">
 
-<!-- CONTAINER -->
-<div class="max-w-4xl mx-auto p-4 fade-up">
+<div class="max-w-4xl mx-auto p-4">
 
   <!-- HEADER -->
-  <div class="flex justify-between items-center mb-6">
+  <div class="flex justify-between items-center mb-4">
     <h1 class="text-3xl font-bold">PIXODRA.AI</h1>
 
     <button
@@ -33,28 +68,33 @@
 
   <!-- LANGUAGE SELECT -->
   <div class="flex gap-3 mb-4">
-    <button onclick="setLang('english')" class="lang-btn">English</button>
-    <button onclick="setLang('tamil')" class="lang-btn">Tamil</button>
-    <button onclick="setLang('tanglish')" class="lang-btn">Tanglish</button>
+    <button id="english" onclick="setLang('english')" class="lang-btn active-lang">English</button>
+    <button id="tamil" onclick="setLang('tamil')" class="lang-btn">Tamil</button>
+    <button id="tanglish" onclick="setLang('tanglish')" class="lang-btn">Tanglish</button>
   </div>
 
   <!-- CHAT BOX -->
-  <div class="bg-[#0f172a]/90 rounded-2xl shadow-xl p-4 mb-4">
-    <div id="chat" class="space-y-3 mb-4 max-h-[50vh] overflow-y-auto"></div>
+  <div class="bg-[#0f172a]/90 rounded-2xl shadow-xl p-4">
+
+    <div id="chat" class="space-y-3 mb-4 max-h-[55vh] overflow-y-auto"></div>
 
     <textarea
       id="userInput"
       rows="3"
-      placeholder="Ask Pixodra..."
+      placeholder="Ask Pixodra anything…"
       class="w-full p-3 rounded-xl bg-gray-800 border border-gray-700 focus:outline-none"></textarea>
 
     <div class="flex gap-3 mt-3">
-      <button onclick="askPixodra()" class="btn-primary">Send</button>
-      <button onclick="makePDF()" class="btn-secondary">Make PDF</button>
+      <button onclick="askPixodra()" class="flex-1 bg-white text-black py-2 rounded-xl font-semibold">
+        Send
+      </button>
+      <button onclick="makePDF()" class="flex-1 bg-white/15 py-2 rounded-xl">
+        Make PDF
+      </button>
     </div>
   </div>
 
-  <p class="text-xs text-gray-500 text-center">
+  <p class="text-xs text-gray-500 text-center mt-4">
     Built by Pixodra Technologies
   </p>
 </div>
@@ -65,50 +105,79 @@
 
   function setLang(lang) {
     selectedLang = lang;
-    alert("Language set to " + lang);
+
+    document.querySelectorAll(".lang-btn").forEach(btn =>
+      btn.classList.remove("active-lang")
+    );
+    document.getElementById(lang).classList.add("active-lang");
+
+    const input = document.getElementById("userInput");
+    if (lang === "tamil") input.placeholder = "Ungal kelviyai inge type pannunga…";
+    else if (lang === "tanglish") input.placeholder = "Ungal question-ah inga type pannunga…";
+    else input.placeholder = "Ask Pixodra anything…";
   }
 
   async function askPixodra() {
-    const input = document.getElementById("userInput").value.trim();
+    const inputBox = document.getElementById("userInput");
+    const input = inputBox.value.trim();
     if (!input) return;
 
     const chat = document.getElementById("chat");
 
+    // User message
     chat.innerHTML += `
-      <div class="text-right">
-        <div class="inline-block bg-indigo-600/20 p-2 rounded-xl">${input}</div>
+      <div class="text-right fade-in">
+        <div class="inline-block bg-indigo-600/20 px-3 py-2 rounded-xl">
+          ${input}
+        </div>
       </div>`;
+    inputBox.value = "";
+    chat.scrollTop = chat.scrollHeight;
 
-    document.getElementById("userInput").value = "";
-
+    // Greeting rule
     if (input.toLowerCase() === "hi") {
-      const reply = "Vanakkam! Ungalukku enna vendum? 😊";
-      chat.innerHTML += botBubble(reply);
-      conversation.push(reply);
+      addBotMessage("Vanakkam! Ungalukku enna vendum? 😊");
       return;
     }
 
-    chat.innerHTML += botBubble("Pixodra thinking... 🤖");
+    // Typing indicator
+    const typingDiv = document.createElement("div");
+    typingDiv.className = "text-left";
+    typingDiv.innerHTML = `
+      <div class="inline-block bg-gray-700/40 px-3 py-2 rounded-xl typing">
+        Pixodra typing<span>.</span><span>.</span><span>.</span>
+      </div>`;
+    chat.appendChild(typingDiv);
+    chat.scrollTop = chat.scrollHeight;
 
-    const res = await fetch("/api/ask", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        message: `[${selectedLang}] ${input}`
-      })
-    });
+    try {
+      const res = await fetch("/api/ask", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: `[${selectedLang}] ${input}`
+        })
+      });
 
-    const data = await res.json();
-    chat.lastElementChild.remove();
-    chat.innerHTML += botBubble(data.reply);
-    conversation.push(data.reply);
+      const data = await res.json();
+      typingDiv.remove();
+      addBotMessage(data.reply);
+    } catch {
+      typingDiv.remove();
+      addBotMessage("Something went wrong. Please try again.");
+    }
   }
 
-  function botBubble(text) {
-    return `
-      <div class="text-left">
-        <div class="inline-block bg-gray-700/50 p-2 rounded-xl">${text}</div>
+  function addBotMessage(text) {
+    const chat = document.getElementById("chat");
+    chat.innerHTML += `
+      <div class="text-left fade-in">
+        <div class="inline-block bg-gray-700/50 px-3 py-2 rounded-xl">
+          ${text}
+        </div>
       </div>`;
+    conversation.push(text);
+    chat.scrollTop = chat.scrollHeight;
   }
 
   function makePDF() {
@@ -117,38 +186,14 @@
       return;
     }
 
-    const blob = new Blob([conversation.join("\n\n")], { type: "application/pdf" });
+    const content = "PIXODRA.AI RESPONSES\n\n" + conversation.join("\n\n");
+    const blob = new Blob([content], { type: "application/pdf" });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
-    link.download = "pixodra-response.pdf";
+    link.download = "pixodra-responses.pdf";
     link.click();
   }
 </script>
-
-<style>
-  .lang-btn {
-    padding: 6px 14px;
-    border-radius: 999px;
-    background: rgba(255,255,255,0.08);
-    transition: 0.2s;
-  }
-  .lang-btn:hover { background: rgba(255,255,255,0.15); }
-
-  .btn-primary {
-    flex: 1;
-    background: white;
-    color: black;
-    padding: 10px;
-    border-radius: 12px;
-    font-weight: 600;
-  }
-  .btn-secondary {
-    flex: 1;
-    background: rgba(255,255,255,0.15);
-    padding: 10px;
-    border-radius: 12px;
-  }
-</style>
 
 </body>
 </html>
