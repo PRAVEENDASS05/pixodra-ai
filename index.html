@@ -130,10 +130,12 @@ function makePDF(){
   box.style.color="black";
   box.style.background="white";
 
+  const today = new Date().toLocaleDateString();
+
   box.innerHTML=`
     <div style="font-weight:bold;margin-bottom:12px">
       Question: ${question} |
-      Date: ${new Date().toLocaleString()} |
+      Date: ${today} |
       Language: ${lang.toUpperCase()} |
       Version: Pixodra-ai (Beta)
     </div>
