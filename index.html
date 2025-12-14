@@ -11,6 +11,9 @@
   <!-- jsPDF -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
+  <!-- Tamil Unicode Font -->
+  <script src="https://cdn.jsdelivr.net/gh/parsavar/jspdf-fonts@master/fonts/NotoSansTamil-Regular.js"></script>
+
   <style>
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(10px); }
@@ -18,23 +21,20 @@
     }
     .fade-in { animation: fadeIn 0.4s ease-out; }
 
-    /* Typing dots */
     .typing span {
       animation: blink 1.4s infinite both;
     }
-    .typing span:nth-child(2) { animation-delay: .2s; }
-    .typing span:nth-child(3) { animation-delay: .4s; }
+    .typing span:nth-child(2){animation-delay:.2s}
+    .typing span:nth-child(3){animation-delay:.4s}
     @keyframes blink {
-      0% { opacity: .2; }
-      20% { opacity: 1; }
-      100% { opacity: .2; }
+      0%{opacity:.2} 20%{opacity:1} 100%{opacity:.2}
     }
 
     .lang-btn {
       padding: 6px 14px;
       border-radius: 999px;
       background: rgba(255,255,255,0.08);
-      transition: 0.2s;
+      transition: .2s;
       font-size: 14px;
     }
     .lang-btn:hover { background: rgba(255,255,255,0.15); }
@@ -55,37 +55,34 @@
   <!-- HEADER -->
   <div class="flex justify-between items-center mb-4">
     <h1 class="text-3xl font-bold">PIXODRA.AI</h1>
-
-    <button
-      onclick="window.location.href='/symposium'"
-      class="px-4 py-2 rounded-xl bg-indigo-600/20 text-indigo-400 hover:bg-indigo-600/30 transition">
+    <button onclick="window.location.href='/symposium'"
+      class="px-4 py-2 rounded-xl bg-indigo-600/20 text-indigo-400 hover:bg-indigo-600/30">
       🎓 Symposium Finder
     </button>
   </div>
 
-  <!-- LANGUAGE SELECT -->
+  <!-- LANGUAGE -->
   <div class="flex gap-3 mb-4">
-    <button id="english" onclick="setLang('english')" class="lang-btn active-lang">English</button>
-    <button id="tamil" onclick="setLang('tamil')" class="lang-btn">Tamil</button>
-    <button id="tanglish" onclick="setLang('tanglish')" class="lang-btn">Tanglish</button>
+    <button id="english" class="lang-btn active-lang" onclick="setLang('english')">English</button>
+    <button id="tamil" class="lang-btn" onclick="setLang('tamil')">Tamil</button>
+    <button id="tanglish" class="lang-btn" onclick="setLang('tanglish')">Tanglish</button>
   </div>
 
-  <!-- CHAT BOX -->
+  <!-- CHAT -->
   <div class="bg-[#0f172a]/90 rounded-2xl shadow-xl p-4">
-
     <div id="chat" class="space-y-3 mb-4 max-h-[55vh] overflow-y-auto"></div>
 
-    <textarea
-      id="userInput"
-      rows="3"
+    <textarea id="userInput" rows="3"
       placeholder="Ask Pixodra anything…"
       class="w-full p-3 rounded-xl bg-gray-800 border border-gray-700 focus:outline-none"></textarea>
 
     <div class="flex gap-3 mt-3">
-      <button onclick="askPixodra()" class="flex-1 bg-white text-black py-2 rounded-xl font-semibold">
+      <button onclick="askPixodra()"
+        class="flex-1 bg-white text-black py-2 rounded-xl font-semibold">
         Send
       </button>
-      <button onclick="makePDF()" class="flex-1 bg-white/15 py-2 rounded-xl">
+      <button onclick="makePDF()"
+        class="flex-1 bg-white/15 py-2 rounded-xl">
         Make PDF
       </button>
     </div>
@@ -103,118 +100,127 @@
   let conversation = [];
   let lastUserQuestion = "";
 
-  function setLang(lang) {
+  function setLang(lang){
     selectedLang = lang;
-
-    document.querySelectorAll(".lang-btn").forEach(btn =>
-      btn.classList.remove("active-lang")
-    );
+    document.querySelectorAll(".lang-btn").forEach(b=>b.classList.remove("active-lang"));
     document.getElementById(lang).classList.add("active-lang");
 
-    const input = document.getElementById("userInput");
-    if (lang === "tamil") input.placeholder = "Ungal kelviyai inge type pannunga…";
-    else if (lang === "tanglish") input.placeholder = "Ungal question-ah inga type pannunga…";
-    else input.placeholder = "Ask Pixodra anything…";
+    const p = {
+      tamil: "Ungal kelviyai inge type pannunga…",
+      tanglish: "Ungal question-ah inga type pannunga…",
+      english: "Ask Pixodra anything…"
+    };
+    userInput.placeholder = p[lang];
   }
 
-  async function askPixodra() {
-    const inputBox = document.getElementById("userInput");
-    const input = inputBox.value.trim();
-    if (!input) return;
+  async function askPixodra(){
+    const input = userInput.value.trim();
+    if(!input) return;
 
     lastUserQuestion = input;
-    const chat = document.getElementById("chat");
 
-    // User message
     chat.innerHTML += `
       <div class="text-right fade-in">
-        <div class="inline-block bg-indigo-600/20 px-3 py-2 rounded-xl">
-          ${input}
-        </div>
+        <div class="inline-block bg-indigo-600/20 px-3 py-2 rounded-xl">${input}</div>
       </div>`;
-    inputBox.value = "";
+    userInput.value="";
     chat.scrollTop = chat.scrollHeight;
 
-    // Greeting shortcut
-    if (input.toLowerCase() === "hi") {
-      addBotMessage("Vanakkam 😊 Ungaluku enna vendum?");
+    if(input.toLowerCase()==="hi"){
+      addBot("Vanakkam 😊 Ungaluku enna vendum?");
       return;
     }
 
-    // Typing indicator
-    const typingDiv = document.createElement("div");
-    typingDiv.innerHTML = `
+    const typing = document.createElement("div");
+    typing.innerHTML = `
       <div class="inline-block bg-gray-700/40 px-3 py-2 rounded-xl typing">
         Pixodra typing<span>.</span><span>.</span><span>.</span>
       </div>`;
-    chat.appendChild(typingDiv);
+    chat.appendChild(typing);
     chat.scrollTop = chat.scrollHeight;
 
-    try {
-      const res = await fetch("/api/ask", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message: `[${selectedLang}] ${input}`
-        })
+    try{
+      const res = await fetch("/api/ask",{
+        method:"POST",
+        headers:{ "Content-Type":"application/json" },
+        body:JSON.stringify({ message:`[${selectedLang}] ${input}` })
       });
-
       const data = await res.json();
-      typingDiv.remove();
-      addBotMessage(data.reply);
+      typing.remove();
+      addBot(data.reply);
       conversation.push(data.reply);
-    } catch {
-      typingDiv.remove();
-      addBotMessage("Something went wrong. Try again.");
+    }catch{
+      typing.remove();
+      addBot("Something went wrong. Try again.");
     }
   }
 
-  function addBotMessage(text) {
-    const chat = document.getElementById("chat");
+  function addBot(text){
     chat.innerHTML += `
       <div class="text-left fade-in">
-        <div class="inline-block bg-gray-700/50 px-3 py-2 rounded-xl">
-          ${text}
-        </div>
+        <div class="inline-block bg-gray-700/50 px-3 py-2 rounded-xl">${text}</div>
       </div>`;
     chat.scrollTop = chat.scrollHeight;
   }
 
-  function makePDF() {
-    if (!conversation.length) {
-      alert("No content to export");
-      return;
-    }
+  function makePDF(){
+    if(!conversation.length) return alert("No content to export");
 
     const doc = new jsPDF();
+    const marginLeft = 15;
+    const marginRight = 180;
+    const top = 20;
+    const bottom = 20;
+    const pageH = doc.internal.pageSize.height;
+    let y = top + 10;
+
+    // FONT
+    if(selectedLang==="tamil"){
+      doc.addFileToVFS("Tamil.ttf", NotoSansTamilRegular);
+      doc.addFont("Tamil.ttf","Tamil","normal");
+      doc.setFont("Tamil");
+    }else{
+      doc.setFont("Helvetica");
+    }
+
     const date = new Date().toLocaleString();
 
-    // Header line (bold)
-    doc.setFont("Helvetica", "bold");
     doc.setFontSize(12);
+    doc.setFont(undefined,"bold");
     doc.text(
-      `Question: ${lastUserQuestion}   |   Date: ${date}   |   Language: ${selectedLang.toUpperCase()}`,
-      10,
-      15
+      `Question: ${lastUserQuestion} | Date: ${date} | Language: ${selectedLang.toUpperCase()}`,
+      marginLeft,
+      top
     );
 
-    // Content
-    doc.setFont("Helvetica", "normal");
+    doc.setFont(undefined,"normal");
     doc.setFontSize(11);
 
-    let y = 25;
-    conversation.forEach(msg => {
-      const lines = doc.splitTextToSize(msg, 180);
-      doc.text(lines, 10, y);
-      y += lines.length * 6 + 6;
-
-      if (y > 270) {
-        doc.addPage();
-        y = 20;
-      }
+    conversation.forEach(msg=>{
+      const lines = doc.splitTextToSize(msg, marginRight);
+      lines.forEach(line=>{
+        if(y > pageH - bottom){
+          footer(doc);
+          doc.addPage();
+          y = top;
+        }
+        doc.text(line, marginLeft, y);
+        y+=6;
+      });
+      y+=4;
     });
 
+    footer(doc);
     doc.save("pixodra-response.pdf");
+  }
+
+  function footer(doc){
+    const h = doc.internal.pageSize.height;
+    doc.setFont("Courier","italic");
+    doc.setFontSize(9);
+    doc.setTextColor(150);
+    doc.text("Thanks for using Pixodra.ai", 15, h-10);
+    doc.setTextColor(0);
   }
 </script>
 
