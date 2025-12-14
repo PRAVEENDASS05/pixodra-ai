@@ -11,7 +11,7 @@
   <!-- Tamil-safe font -->
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Tamil:wght@400;600&display=swap" rel="stylesheet">
 
-  <!-- html2pdf bundle (includes jsPDF) -->
+  <!-- html2pdf bundle -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
   <style>
@@ -132,7 +132,7 @@
     const res = await fetch("/api/ask",{
       method:"POST",
       headers:{ "Content-Type":"application/json" },
-      body:JSON.stringify({ message:`[${selectedLang}] ${input}` })
+      body:JSON.stringify({ message:\`[\${selectedLang}] \${input}\` })
     });
     const data = await res.json();
     typing.remove();
@@ -146,7 +146,7 @@
     chat.scrollTop = chat.scrollHeight;
   }
 
-  /* -------- PDF (GUARANTEED WORKING) -------- */
+  /* -------- PDF -------- */
   function makePDF(){
     if(!conversation.length){
       alert("No content to export");
@@ -185,35 +185,27 @@
       })
       .from(pdfContent)
       .toPdf()
-      .get('pdf')
+      .get("pdf")
       .then(pdf => {
         const pageCount = pdf.internal.getNumberOfPages();
         const pageHeight = pdf.internal.pageSize.height;
         const pageWidth = pdf.internal.pageSize.width;
 
-        for (let i = 1; i <= pageCount; i++) {
+        for(let i=1;i<=pageCount;i++){
           pdf.setPage(i);
 
-          // Watermark
-          pdf.setFont("Courier", "italic");
-          pdf.setFontSize(9);
-          pdf.setTextColor(150);
-          pdf.text(
-            "Thanks for using Pixodra.ai",
-            15,
-            pageHeight - 10
-          );
+          // BLACK watermark
+          pdf.setFont("Courier","italic");
+          pdf.setFontSize(10);
+          pdf.setTextColor(0,0,0);
+          pdf.text("Thanks for using Pixodra.ai",15,pageHeight-10);
 
           // Page number
-          pdf.text(
-            `Page ${i} of ${pageCount}`,
-            pageWidth - 40,
-            pageHeight - 10
-          );
+          pdf.text(`Page ${i} of ${pageCount}`,pageWidth-45,pageHeight-10);
         }
       })
       .save("pixodra-response.pdf")
-      .then(() => pdfContent.remove());
+      .then(()=>pdfContent.remove());
   }
 </script>
 
