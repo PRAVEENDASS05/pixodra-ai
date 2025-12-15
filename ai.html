@@ -5,24 +5,20 @@
 <title>Pixodra.ai</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<!-- Tailwind -->
 <script src="https://cdn.tailwindcss.com"></script>
 
-<!-- Fonts -->
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Tamil&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Courier+Prime&display=swap" rel="stylesheet">
 
-<!-- html2pdf -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
-<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 
 <style>
 body{
   background:radial-gradient(circle at top,#1e293b,#020617);
-  animation:pageFade .6s ease;
+  animation:pageFade .5s ease;
 }
 @keyframes pageFade{from{opacity:0}to{opacity:1}}
 
@@ -46,12 +42,18 @@ textarea:focus{box-shadow:0 0 25px rgba(99,102,241,.45)}
  class="fixed inset-y-0 left-0 w-72 bg-slate-900/95 backdrop-blur
  border-r border-white/10 z-50 p-4 -translate-x-full menu flex flex-col">
 
-  <!-- USER EMAIL BUTTON -->
-  <button onclick="closeMenu()"
-    id="userEmailBtn"
-    class="w-full px-4 py-3 rounded-xl bg-indigo-600/30 mb-4 text-left">
-    user@email.com
-  </button>
+  <!-- USER INFO -->
+  <div class="flex items-center gap-3 mb-5">
+    <div id="avatar"
+      class="w-11 h-11 rounded-full bg-indigo-600 flex items-center justify-center font-bold text-lg">
+      U
+    </div>
+    <div class="flex-1">
+      <div id="displayName" class="font-semibold leading-tight">User</div>
+      <div id="userEmail" class="text-xs text-gray-400 truncate"></div>
+    </div>
+    <div class="text-gray-400">▾</div>
+  </div>
 
   <button onclick="newChat()"
     class="w-full text-left px-4 py-3 rounded-xl hover:bg-white/10">
@@ -63,11 +65,16 @@ textarea:focus{box-shadow:0 0 25px rgba(99,102,241,.45)}
     🎓 Symposium Finder
   </button>
 
-  <!-- PUSH LOGOUT TO BOTTOM -->
-  <div class="mt-auto pt-4">
+  <!-- PUSH ACTIONS DOWN -->
+  <div class="mt-auto space-y-3">
+    <button onclick="closeMenu()"
+      class="w-full px-4 py-3 rounded-xl bg-indigo-600/30">
+      ⬅ Back to AI
+    </button>
+
     <button onclick="logout()"
       class="w-full text-left px-4 py-3 rounded-xl bg-red-600/30">
-       Logout
+      🚪 Logout
     </button>
   </div>
 </div>
@@ -112,7 +119,6 @@ textarea:focus{box-shadow:0 0 25px rgba(99,102,241,.45)}
 </div>
 
 <script>
-/* FIREBASE */
 firebase.initializeApp({
   apiKey:"AIzaSyDNCb1OOT1tjvC2G7fd3Lky10_FNbp3_oE",
   authDomain:"pixodra-ai.firebaseapp.com",
@@ -123,16 +129,18 @@ const auth=firebase.auth();
 
 auth.onAuthStateChanged(u=>{
   if(!u) location.href="index.html";
-  document.getElementById("userEmailBtn").innerText = u.email;
+
+  const name = u.displayName || u.email.split("@")[0];
+  displayName.innerText = name;
+  userEmail.innerText = u.email;
+  avatar.innerText = name.charAt(0).toUpperCase();
 });
 
-/* MENU */
 function toggleMenu(){menu.classList.toggle("-translate-x-full")}
 function closeMenu(){menu.classList.add("-translate-x-full")}
 function logout(){auth.signOut().then(()=>location.href="index.html")}
 function newChat(){chat.innerHTML="";history=[];closeMenu()}
 
-/* CHAT */
 let lang="english",history=[],question="";
 
 function setLang(l,b){
@@ -184,7 +192,6 @@ function bot(m){
   chat.scrollTop=chat.scrollHeight;
 }
 
-/* PDF */
 function makePDF(){
   if(!history.length) return alert("No content to export");
 
@@ -201,11 +208,7 @@ function makePDF(){
     <p style="text-decoration:underline;margin-bottom:18px">
       Date: ${date} | Language: ${lang.toUpperCase()} | Version: Pixodra-ai (Beta)
     </p>
-
-    <p style="margin-bottom:20px">
-      <b>Question:</b> ${question}
-    </p>
-
+    <p style="margin-bottom:20px"><b>Question:</b> ${question}</p>
     ${history.map(h=>`<p style="margin-bottom:12px">${h}</p>`).join("")}
   `;
 
@@ -215,17 +218,15 @@ function makePDF(){
     html2pdf().from(box).set({
       margin:15,
       filename:"pixodraai-response.pdf",
-      html2canvas:{scale:2,useCORS:true},
+      html2canvas:{scale:2},
       jsPDF:{format:"a4"}
     }).toPdf().get("pdf").then(pdf=>{
       const h=pdf.internal.pageSize.height;
       const w=pdf.internal.pageSize.width;
-      const pages=pdf.internal.getNumberOfPages();
-
       pdf.setFont("Courier");
       pdf.setFontSize(10);
 
-      for(let i=1;i<=pages;i++){
+      for(let i=1;i<=pdf.internal.getNumberOfPages();i++){
         pdf.setPage(i);
         pdf.text("Thanks for using Pixodra.ai",15,h-10);
         pdf.text(`Page ${i}`,w-30,h-10);
