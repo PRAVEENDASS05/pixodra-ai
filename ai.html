@@ -7,11 +7,14 @@
 
 <script src="https://cdn.tailwindcss.com"></script>
 
+<!-- Fonts -->
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Tamil&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Courier+Prime&display=swap" rel="stylesheet">
 
+<!-- PDF -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
+<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 
@@ -24,24 +27,22 @@ body{
 
 .menu{transition:.45s cubic-bezier(.4,0,.2,1)}
 
-.menu-btn{
-  display:flex;
-  align-items:center;
-  gap:12px;
-  padding:14px 18px;
-  border-radius:14px;
-  transition:.3s;
-}
-.menu-btn:hover{
-  background:rgba(255,255,255,.08);
-  transform:translateX(4px);
-}
-
 .lang{padding:6px 14px;border-radius:999px;background:rgba(255,255,255,.08)}
 .lang.active{background:#6366f1}
 
 .glow{
   box-shadow:0 0 40px rgba(99,102,241,.25);
+  transition:.3s;
+}
+.glow:active{
+  box-shadow:0 0 65px rgba(139,92,246,.45);
+}
+
+.touch-glow{
+  transition:.25s;
+}
+.touch-glow:active{
+  box-shadow:0 0 30px rgba(99,102,241,.6);
 }
 </style>
 </head>
@@ -49,61 +50,42 @@ body{
 <body class="text-white min-h-screen">
 
 <!-- SIDEBAR -->
-<div id="menu"
- class="fixed inset-y-0 left-0 w-72 bg-slate-900/95 backdrop-blur
- border-r border-white/10 z-50 p-5 -translate-x-full menu flex flex-col">
+<div id="menu" class="fixed inset-y-0 left-0 w-72 bg-slate-900/95 backdrop-blur border-r border-white/10 z-50 p-5 -translate-x-full menu flex flex-col">
 
-  <!-- PROFILE -->
   <div class="flex items-center gap-4 mb-8">
     <div id="avatar" class="w-12 h-12 rounded-full bg-indigo-600 flex items-center justify-center font-bold text-lg">U</div>
     <div class="flex-1">
       <div id="displayName" class="font-semibold text-lg">User</div>
       <div id="userEmail" class="text-xs text-gray-400 truncate"></div>
     </div>
-    <div class="text-gray-400">▾</div>
   </div>
 
-  <!-- MENU ITEMS -->
   <div class="space-y-2">
-    <button onclick="newChat()" class="menu-btn w-full">
-      ➕ <span>New Chat</span>
-    </button>
-
-    <button onclick="location.href='symposium.html'" class="menu-btn w-full">
-      🎓 <span>Symposium Finder</span>
-    </button>
+    <button onclick="newChat()" class="w-full px-4 py-3 rounded-xl hover:bg-white/10">➕ New Chat</button>
+    <button onclick="location.href='symposium.html'" class="w-full px-4 py-3 rounded-xl hover:bg-white/10">🎓 Symposium Finder</button>
   </div>
 
-  <!-- BOTTOM ACTIONS -->
   <div class="mt-auto space-y-3 pt-6 border-t border-white/10">
-    <button onclick="closeMenu()" class="menu-btn w-full bg-indigo-600/30 justify-center">
-      ⬅ Back to AI
-    </button>
-
-    <button onclick="logout()" class="menu-btn w-full bg-red-600/30 justify-center">
-      🚪 Logout
-    </button>
+    <button onclick="closeMenu()" class="w-full px-4 py-3 rounded-xl bg-indigo-600/30">⬅ Back to AI</button>
+    <button onclick="logout()" class="w-full px-4 py-3 rounded-xl bg-red-600/30">🚪 Logout</button>
   </div>
 </div>
 
 <!-- MAIN -->
 <div class="max-w-4xl mx-auto p-4">
 
-<!-- HEADER -->
 <div class="flex justify-between items-center mb-4">
   <button onclick="toggleMenu()" class="text-2xl">☰</button>
   <h1 class="text-3xl font-bold">PIXODRA<span class="text-indigo-400">.AI</span></h1>
 </div>
 
-<!-- LANG -->
 <div class="flex gap-2 mb-3">
   <button class="lang active" onclick="setLang('english',this)">English</button>
   <button class="lang" onclick="setLang('tamil',this)">Tamil</button>
   <button class="lang" onclick="setLang('tanglish',this)">Tanglish</button>
 </div>
 
-<!-- CHAT -->
-<div class="bg-white/5 backdrop-blur border border-white/10 rounded-3xl p-4 glow">
+<div class="bg-white/5 backdrop-blur border border-white/10 rounded-3xl p-4 glow touch-glow">
   <div id="chat" class="space-y-4 mb-4 max-h-[60vh] overflow-y-auto"></div>
 
   <textarea id="input" rows="3"
@@ -116,7 +98,10 @@ body{
   </div>
 </div>
 
-<p class="text-xs text-center mt-4 text-gray-400">Pixodra-ai (Beta)</p>
+<div class="mt-4 text-center text-gray-400 text-xs glow touch-glow rounded-xl py-2">
+  Pixodra-ai (Beta)
+</div>
+
 </div>
 
 <script>
@@ -140,14 +125,12 @@ function closeMenu(){menu.classList.add("-translate-x-full")}
 function logout(){auth.signOut().then(()=>location.href="index.html")}
 function newChat(){chat.innerHTML="";history=[];closeMenu()}
 
-let lang="english",history=[],question="";
-let thinkingEl=null;
+let lang="english",history=[],question="",thinkingEl=null;
 
 function setLang(l,b){
   lang=l;
   document.querySelectorAll(".lang").forEach(x=>x.classList.remove("active"));
   b.classList.add("active");
-
   input.placeholder={
     english:"Ask Pixodra anything...",
     tamil:"ஏதாவது கேளுங்கள் @pixodra.ai",
@@ -160,18 +143,14 @@ function send(){
   if(!t) return;
   question=t;
 
-  chat.insertAdjacentHTML("beforeend",`
-    <div class="fade text-right">
-      <div class="inline-block bg-indigo-600/30 px-4 py-2 rounded-2xl">${t}</div>
-    </div>
-  `);
+  chat.innerHTML+=`<div class="fade text-right"><div class="inline-block bg-indigo-600/30 px-4 py-2 rounded-2xl">${t}</div></div>`;
   input.value="";
   chat.scrollTop=chat.scrollHeight;
 
   showThinking();
 
   fetch("/api/ask",{method:"POST",headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({message:`[${lang}] ${t}`})})
+  body:JSON.stringify({message:`[${lang}] ${t}`})})
   .then(r=>r.json())
   .then(d=>{
     removeThinking();
@@ -185,36 +164,37 @@ function showThinking(){
   thinkingEl.className="fade text-gray-400";
   thinkingEl.innerText="Pixodra-AI is thinking...";
   chat.appendChild(thinkingEl);
-  chat.scrollTop=chat.scrollHeight;
 }
 
 function removeThinking(){thinkingEl?.remove()}
 
 function bot(m){
-  chat.insertAdjacentHTML("beforeend",`
-    <div class="fade bg-gray-700/40 px-4 py-2 rounded-2xl">${m}</div>
-  `);
+  chat.innerHTML+=`<div class="fade bg-gray-700/40 px-4 py-2 rounded-2xl">${m}</div>`;
   chat.scrollTop=chat.scrollHeight;
 }
 
-/* PDF unchanged & aligned */
+/* PDF – FINAL FIX */
 function makePDF(){
   if(!history.length) return alert("No content");
 
   const box=document.createElement("div");
   box.style.width="210mm";
   box.style.padding="25mm";
-  box.style.fontFamily=lang==="tamil"?"'Noto Sans Tamil'":"Times New Roman";
-  box.style.lineHeight="1.6";
-  box.style.color="black";
-  box.style.background="white";
+  box.style.fontFamily="'Noto Sans Tamil', serif";
+  box.style.lineHeight="1.7";
+  box.style.color="#000";
+  box.style.background="#fff";
 
   box.innerHTML=`
-    <div style="border-bottom:1px solid #000;padding-bottom:8px;margin-bottom:18px">
+    <div style="border-bottom:1px solid #000;padding-bottom:10px;margin-bottom:20px">
       Date: ${new Date().toLocaleDateString()} | Language: ${lang.toUpperCase()} | Version: Pixodra-ai (Beta)
     </div>
-    <div style="margin-bottom:18px"><strong>Question:</strong><br>${question}</div>
-    ${history.map(h=>`<div style="margin-bottom:14px">${h}</div>`).join("")}
+
+    <div style="margin-bottom:20px">
+      <b>Question:</b><br>${question}
+    </div>
+
+    ${history.map(h=>`<p style="margin-bottom:14px">${h}</p>`).join("")}
   `;
 
   document.body.appendChild(box);
@@ -235,7 +215,7 @@ function makePDF(){
         pdf.text(`Page ${i}`,w-30,h-10);
       }
     }).save().then(()=>box.remove());
-  },300);
+  },500);
 }
 </script>
 
