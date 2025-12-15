@@ -19,23 +19,29 @@
 body{
   background:radial-gradient(circle at top,#1e293b,#020617);
 }
-.fade{animation:fade .3s ease}
-@keyframes fade{from{opacity:0;transform:translateY(10px)}to{opacity:1}}
+.fade{animation:fade .35s ease}
+@keyframes fade{from{opacity:0;transform:translateY(14px)}to{opacity:1}}
+
+.menu{transition:.45s cubic-bezier(.4,0,.2,1)}
+
+.menu-btn{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:14px 18px;
+  border-radius:14px;
+  transition:.3s;
+}
+.menu-btn:hover{
+  background:rgba(255,255,255,.08);
+  transform:translateX(4px);
+}
 
 .lang{padding:6px 14px;border-radius:999px;background:rgba(255,255,255,.08)}
 .lang.active{background:#6366f1}
 
-.menu{transition:.35s}
-
-.dot{
-  animation:bounce 1.4s infinite both;
-}
-.dot:nth-child(2){animation-delay:.2s}
-.dot:nth-child(3){animation-delay:.4s}
-
-@keyframes bounce{
-  0%,80%,100%{transform:scale(0)}
-  40%{transform:scale(1)}
+.glow{
+  box-shadow:0 0 40px rgba(99,102,241,.25);
 }
 </style>
 </head>
@@ -45,45 +51,63 @@ body{
 <!-- SIDEBAR -->
 <div id="menu"
  class="fixed inset-y-0 left-0 w-72 bg-slate-900/95 backdrop-blur
- border-r border-white/10 z-50 p-4 -translate-x-full menu flex flex-col">
+ border-r border-white/10 z-50 p-5 -translate-x-full menu flex flex-col">
 
-  <div class="flex items-center gap-3 mb-5">
-    <div id="avatar" class="w-11 h-11 rounded-full bg-indigo-600 flex items-center justify-center font-bold text-lg">U</div>
+  <!-- PROFILE -->
+  <div class="flex items-center gap-4 mb-8">
+    <div id="avatar" class="w-12 h-12 rounded-full bg-indigo-600 flex items-center justify-center font-bold text-lg">U</div>
     <div class="flex-1">
-      <div id="displayName" class="font-semibold">User</div>
+      <div id="displayName" class="font-semibold text-lg">User</div>
       <div id="userEmail" class="text-xs text-gray-400 truncate"></div>
     </div>
     <div class="text-gray-400">▾</div>
   </div>
 
-  <button onclick="newChat()" class="px-4 py-3 rounded-xl hover:bg-white/10">➕ New Chat</button>
-  <button onclick="location.href='symposium.html'" class="px-4 py-3 rounded-xl hover:bg-white/10">🎓 Symposium Finder</button>
+  <!-- MENU ITEMS -->
+  <div class="space-y-2">
+    <button onclick="newChat()" class="menu-btn w-full">
+      ➕ <span>New Chat</span>
+    </button>
 
-  <div class="mt-auto space-y-3">
-    <button onclick="closeMenu()" class="px-4 py-3 rounded-xl bg-indigo-600/30">⬅ Back to AI</button>
-    <button onclick="logout()" class="px-4 py-3 rounded-xl bg-red-600/30">🚪 Logout</button>
+    <button onclick="location.href='symposium.html'" class="menu-btn w-full">
+      🎓 <span>Symposium Finder</span>
+    </button>
+  </div>
+
+  <!-- BOTTOM ACTIONS -->
+  <div class="mt-auto space-y-3 pt-6 border-t border-white/10">
+    <button onclick="closeMenu()" class="menu-btn w-full bg-indigo-600/30 justify-center">
+      ⬅ Back to AI
+    </button>
+
+    <button onclick="logout()" class="menu-btn w-full bg-red-600/30 justify-center">
+      🚪 Logout
+    </button>
   </div>
 </div>
 
 <!-- MAIN -->
 <div class="max-w-4xl mx-auto p-4">
 
+<!-- HEADER -->
 <div class="flex justify-between items-center mb-4">
   <button onclick="toggleMenu()" class="text-2xl">☰</button>
   <h1 class="text-3xl font-bold">PIXODRA<span class="text-indigo-400">.AI</span></h1>
 </div>
 
+<!-- LANG -->
 <div class="flex gap-2 mb-3">
   <button class="lang active" onclick="setLang('english',this)">English</button>
   <button class="lang" onclick="setLang('tamil',this)">Tamil</button>
   <button class="lang" onclick="setLang('tanglish',this)">Tanglish</button>
 </div>
 
-<div class="bg-white/5 backdrop-blur border border-white/10 rounded-3xl p-4">
+<!-- CHAT -->
+<div class="bg-white/5 backdrop-blur border border-white/10 rounded-3xl p-4 glow">
   <div id="chat" class="space-y-4 mb-4 max-h-[60vh] overflow-y-auto"></div>
 
   <textarea id="input" rows="3"
-    class="w-full p-4 rounded-2xl bg-gray-900 border border-gray-700"
+    class="w-full p-4 rounded-2xl bg-gray-900 border border-gray-700 focus:ring-2 focus:ring-indigo-500"
     placeholder="Ask Pixodra anything..."></textarea>
 
   <div class="flex gap-3 mt-3">
@@ -106,9 +130,9 @@ const auth=firebase.auth();
 
 auth.onAuthStateChanged(u=>{
   if(!u) location.href="index.html";
-  displayName.innerText = u.displayName || u.email.split("@")[0];
-  userEmail.innerText = u.email;
-  avatar.innerText = (u.displayName || u.email)[0].toUpperCase();
+  displayName.innerText=u.displayName||u.email.split("@")[0];
+  userEmail.innerText=u.email;
+  avatar.innerText=(u.displayName||u.email)[0].toUpperCase();
 });
 
 function toggleMenu(){menu.classList.toggle("-translate-x-full")}
@@ -146,11 +170,8 @@ function send(){
 
   showThinking();
 
-  fetch("/api/ask",{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({message:`[${lang}] ${t}`})
-  })
+  fetch("/api/ask",{method:"POST",headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({message:`[${lang}] ${t}`})})
   .then(r=>r.json())
   .then(d=>{
     removeThinking();
@@ -161,20 +182,13 @@ function send(){
 
 function showThinking(){
   thinkingEl=document.createElement("div");
-  thinkingEl.className="fade flex items-center gap-2 text-gray-400";
-  thinkingEl.innerHTML=`
-    Pixodra-AI is thinking
-    <span class="dot w-2 h-2 bg-gray-400 rounded-full"></span>
-    <span class="dot w-2 h-2 bg-gray-400 rounded-full"></span>
-    <span class="dot w-2 h-2 bg-gray-400 rounded-full"></span>
-  `;
+  thinkingEl.className="fade text-gray-400";
+  thinkingEl.innerText="Pixodra-AI is thinking...";
   chat.appendChild(thinkingEl);
   chat.scrollTop=chat.scrollHeight;
 }
 
-function removeThinking(){
-  if(thinkingEl) thinkingEl.remove();
-}
+function removeThinking(){thinkingEl?.remove()}
 
 function bot(m){
   chat.insertAdjacentHTML("beforeend",`
@@ -183,7 +197,7 @@ function bot(m){
   chat.scrollTop=chat.scrollHeight;
 }
 
-/* PDF (unchanged, aligned) */
+/* PDF unchanged & aligned */
 function makePDF(){
   if(!history.length) return alert("No content");
 
@@ -194,19 +208,12 @@ function makePDF(){
   box.style.lineHeight="1.6";
   box.style.color="black";
   box.style.background="white";
-  box.style.textAlign="left";
-
-  const date=new Date().toLocaleDateString();
 
   box.innerHTML=`
     <div style="border-bottom:1px solid #000;padding-bottom:8px;margin-bottom:18px">
-      Date: ${date} | Language: ${lang.toUpperCase()} | Version: Pixodra-ai (Beta)
+      Date: ${new Date().toLocaleDateString()} | Language: ${lang.toUpperCase()} | Version: Pixodra-ai (Beta)
     </div>
-
-    <div style="margin-bottom:18px">
-      <strong>Question:</strong><br>${question}
-    </div>
-
+    <div style="margin-bottom:18px"><strong>Question:</strong><br>${question}</div>
     ${history.map(h=>`<div style="margin-bottom:14px">${h}</div>`).join("")}
   `;
 
@@ -214,7 +221,6 @@ function makePDF(){
 
   setTimeout(()=>{
     html2pdf().from(box).set({
-      margin:0,
       filename:"pixodraai-response.pdf",
       html2canvas:{scale:2},
       jsPDF:{unit:"mm",format:"a4"}
@@ -223,7 +229,6 @@ function makePDF(){
       const w=pdf.internal.pageSize.width;
       pdf.setFont("Courier");
       pdf.setFontSize(10);
-
       for(let i=1;i<=pdf.internal.getNumberOfPages();i++){
         pdf.setPage(i);
         pdf.text("Thanks for using Pixodra.ai",15,h-10);
