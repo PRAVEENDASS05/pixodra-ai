@@ -8,7 +8,7 @@
 <!-- Tailwind -->
 <script src="https://cdn.tailwindcss.com"></script>
 
-<!-- Tamil font -->
+<!-- Tamil Font -->
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Tamil&display=swap" rel="stylesheet">
 
 <!-- html2pdf -->
@@ -20,56 +20,74 @@
 
 <style>
 body{
-  background: radial-gradient(circle at top,#1e293b,#020617);
-  font-family: system-ui, sans-serif;
+  background:radial-gradient(circle at top,#1e293b,#020617);
+  animation:pageFade .6s ease;
 }
+@keyframes pageFade{from{opacity:0}to{opacity:1}}
+
 .fade{animation:fade .35s ease}
 @keyframes fade{from{opacity:0;transform:translateY(12px)}to{opacity:1}}
+
+.glow{
+  box-shadow:0 0 25px rgba(99,102,241,.35);
+}
+textarea:focus{
+  box-shadow:0 0 25px rgba(99,102,241,.45);
+}
+
 .btn{transition:.25s}
-.btn:hover{transform:translateY(-1px)}
-.lang{padding:6px 14px;border-radius:999px;background:rgba(255,255,255,.08)}
-.lang.active{background:linear-gradient(135deg,#6366f1,#8b5cf6)}
-.menu{transition:.35s cubic-bezier(.4,0,.2,1)}
+.btn:hover{
+  transform:translateY(-1px);
+  box-shadow:0 0 20px rgba(255,255,255,.25);
+}
+
+.lang{
+  padding:6px 14px;
+  border-radius:999px;
+  background:rgba(255,255,255,.08);
+}
+.lang.active{
+  background:linear-gradient(135deg,#6366f1,#8b5cf6);
+}
+
+.menu{
+  transition:.4s cubic-bezier(.4,0,.2,1);
+}
+.swipeBtn{
+  background:linear-gradient(135deg,#22d3ee,#6366f1);
+  color:black;
+  font-weight:600;
+}
 </style>
 </head>
 
-<body class="min-h-screen text-white">
+<body class="text-white min-h-screen">
 
 <!-- SIDEBAR -->
 <div id="menu"
  class="fixed inset-y-0 left-0 w-72 bg-slate-900/95 backdrop-blur
-        border-r border-white/10 z-50 p-4 -translate-x-full menu">
+ border-r border-white/10 z-50 p-4 -translate-x-full menu">
 
-  <div class="flex items-center gap-3 mb-6">
-    <div class="w-10 h-10 rounded-full bg-indigo-600 flex items-center justify-center font-bold">
-      P
-    </div>
+  <!-- USER -->
+  <div class="flex items-center gap-3 mb-4">
+    <div class="w-10 h-10 rounded-full bg-indigo-600 flex items-center justify-center font-bold">P</div>
     <div>
       <div id="userName" class="font-semibold">User</div>
       <div id="userEmail" class="text-xs text-gray-400"></div>
     </div>
   </div>
 
+  <!-- LOGOUT TOP -->
+  <button onclick="logout()" class="w-full text-left px-4 py-3 rounded-xl bg-red-600/30 mb-3">🚪 Logout</button>
+
+  <!-- SWIPE BACK BUTTON -->
+  <button onclick="closeMenu()"
+    class="swipeBtn w-full px-4 py-3 rounded-xl mb-3">
+    ⬅ Back to AI
+  </button>
+
   <button onclick="newChat()" class="w-full text-left px-4 py-3 rounded-xl hover:bg-white/10">➕ New Chat</button>
   <button onclick="location.href='symposium.html'" class="w-full text-left px-4 py-3 rounded-xl hover:bg-white/10">🎓 Symposium Finder</button>
-  <button onclick="openReadme()" class="w-full text-left px-4 py-3 rounded-xl hover:bg-white/10">📘 Readme</button>
-
-  <div class="mt-8 border-t border-white/10 pt-4">
-    <button onclick="logout()" class="w-full text-left px-4 py-3 rounded-xl bg-red-600/30">🚪 Logout</button>
-  </div>
-</div>
-
-<!-- README MODAL -->
-<div id="readmeModal" class="fixed inset-0 hidden z-50 bg-black/70 backdrop-blur flex items-center justify-center p-4">
-  <div class="bg-slate-900 max-w-3xl w-full rounded-2xl border border-white/10 fade">
-    <div class="flex justify-between items-center p-4 border-b border-white/10">
-      <h2 class="text-xl font-semibold">📘 Pixodra.ai – Readme</h2>
-      <button onclick="closeReadme()" class="text-xl">✕</button>
-    </div>
-    <pre id="readmeContent" class="p-4 max-h-[70vh] overflow-y-auto text-sm text-gray-300 whitespace-pre-wrap">
-Loading README...
-    </pre>
-  </div>
 </div>
 
 <!-- MAIN -->
@@ -81,15 +99,15 @@ Loading README...
   <h1 class="text-3xl font-bold">PIXODRA<span class="text-indigo-400">.AI</span></h1>
 </div>
 
-<!-- LANG -->
+<!-- LANGUAGE -->
 <div class="flex gap-2 mb-3 flex-wrap">
   <button class="lang active" onclick="setLang('english',this)">English</button>
   <button class="lang" onclick="setLang('tamil',this)">Tamil</button>
   <button class="lang" onclick="setLang('tanglish',this)">Tanglish</button>
 </div>
 
-<!-- CHAT -->
-<div class="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-4">
+<!-- CHAT CARD -->
+<div class="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-4 glow">
   <div id="chat" class="space-y-4 mb-4 max-h-[60vh] overflow-y-auto"></div>
 
   <textarea id="input" rows="3"
@@ -106,16 +124,15 @@ Loading README...
 </div>
 
 <script>
-/* FIREBASE CONFIG */
+/* FIREBASE */
 firebase.initializeApp({
-  apiKey: "AIzaSyDNCb1OOT1tjvC2G7fd3Lky10_FNbp3_oE",
-  authDomain: "pixodra-ai.firebaseapp.com",
-  projectId: "pixodra-ai",
+  apiKey:"AIzaSyDNCb1OOT1tjvC2G7fd3Lky10_FNbp3_oE",
+  authDomain:"pixodra-ai.firebaseapp.com",
+  projectId:"pixodra-ai",
   appId:"1:435810946190:web:f7a0fd440179ee433d0ddf"
 });
 const auth=firebase.auth();
 
-/* AUTH */
 auth.onAuthStateChanged(u=>{
   if(!u) location.href="index.html";
   userName.innerText=u.displayName||"User";
@@ -123,28 +140,10 @@ auth.onAuthStateChanged(u=>{
 });
 
 /* MENU */
-function toggleMenu(){
-  menu.classList.toggle("-translate-x-full");
-}
-function newChat(){
-  chat.innerHTML="";
-  history=[];
-  toggleMenu();
-}
-function logout(){
-  auth.signOut().then(()=>location.href="index.html");
-}
-
-/* README */
-function openReadme(){
-  readmeModal.classList.remove("hidden");
-  fetch("https://raw.githubusercontent.com/PRAVEENDASS05/pixodra-ai/main/README.md")
-    .then(r=>r.text())
-    .then(t=>readmeContent.innerText=t);
-}
-function closeReadme(){
-  readmeModal.classList.add("hidden");
-}
+function toggleMenu(){menu.classList.toggle("-translate-x-full")}
+function closeMenu(){menu.classList.add("-translate-x-full")}
+function logout(){auth.signOut().then(()=>location.href="index.html")}
+function newChat(){chat.innerHTML="";history=[];closeMenu()}
 
 /* CHAT */
 let lang="english",history=[],question="";
@@ -152,55 +151,82 @@ function setLang(l,b){
   lang=l;
   document.querySelectorAll(".lang").forEach(x=>x.classList.remove("active"));
   b.classList.add("active");
+
+  input.placeholder={
+    english:"Ask Pixodra anything...",
+    tamil:"ஏதாவது கேளுங்கள் @pixodra.ai",
+    tanglish:"Enna Vaenum Kelungo"
+  }[l];
 }
+
 function send(){
   const t=input.value.trim();
   if(!t) return;
   question=t;
-  chat.innerHTML+=`<div class="fade text-right"><div class="inline-block bg-indigo-600/30 px-4 py-2 rounded-2xl">${t}</div></div>`;
+
+  chat.innerHTML+=`<div class="fade text-right">
+    <div class="inline-block bg-indigo-600/30 px-4 py-2 rounded-2xl">${t}</div></div>`;
   input.value="";
 
-  const low=t.toLowerCase();
-  if(low==="hi"){ bot("Vanakkam  Ungalukku enna vaedum?"); return;}
-  if(low.includes("mrs pd")){
-    bot("Hi mam  glad to hear that our Owner pondati is here! Ena Vaedum Madam ku");
+  if(t.toLowerCase()==="hi"){
+    bot("Vanakkam 😊 Ungalukku enna vaedum?");
     return;
   }
 
-  fetch("/api/ask",{method:"POST",headers:{"Content-Type":"application/json"},
-  body:JSON.stringify({message:`[${lang}] ${t}`})})
-  .then(r=>r.json()).then(d=>{bot(d.reply);history.push(d.reply);});
+  fetch("/api/ask",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({message:`[${lang}] ${t}`})
+  })
+  .then(r=>r.json())
+  .then(d=>{
+    bot(d.reply);
+    history.push(d.reply);
+  });
 }
+
 function bot(m){
   chat.innerHTML+=`<div class="fade bg-gray-700/40 px-4 py-2 rounded-2xl">${m}</div>`;
+  chat.scrollTop=chat.scrollHeight;
 }
 
 /* PDF */
 function makePDF(){
   if(!history.length) return alert("No content");
+
   const box=document.createElement("div");
   box.style.padding="25mm";
   box.style.fontFamily=lang==="tamil"?"'Noto Sans Tamil'":"Times New Roman";
+  box.style.color="black";
+  box.style.background="white";
+
+  const date=new Date().toLocaleDateString();
+
   box.innerHTML=`
-  <div style="text-align:center">
-  <u>Date: ${new Date().toLocaleDateString()} | Language: ${lang.toUpperCase()} | Version: Pixodra-ai (Beta)</u>
-  <p><b>Question:</b> ${question}</p></div>
-  ${history.map(h=>`<p>${h}</p>`).join("")}`;
+    <p><b>Question:</b> ${question}</p>
+    <p style="text-decoration:underline">
+      Date: ${date} | Language: ${lang.toUpperCase()} | Version: Pixodra-ai (Beta)
+    </p>
+    ${history.map(h=>`<p>${h}</p>`).join("")}
+  `;
+
   document.body.appendChild(box);
 
-  html2pdf().set({
-    filename:"pixodraai-response.pdf",
-    margin:15,
-    html2canvas:{scale:2},
-    jsPDF:{format:"a4"}
-  }).from(box).toPdf().get("pdf").then(pdf=>{
-    const h=pdf.internal.pageSize.height,w=pdf.internal.pageSize.width;
-    for(let i=1;i<=pdf.internal.getNumberOfPages();i++){
-      pdf.setPage(i);
-      pdf.text("Thanks for using Pixodra.ai",15,h-10);
-      pdf.text(`Page ${i}`,w-30,h-10);
-    }
-  }).save().then(()=>box.remove());
+  setTimeout(()=>{
+    html2pdf().set({
+      filename:"pixodraai-response.pdf",
+      margin:15,
+      html2canvas:{scale:2},
+      jsPDF:{format:"a4"}
+    }).from(box).toPdf().get("pdf").then(pdf=>{
+      const h=pdf.internal.pageSize.height,w=pdf.internal.pageSize.width;
+      for(let i=1;i<=pdf.internal.getNumberOfPages();i++){
+        pdf.setPage(i);
+        pdf.text("Thanks for using Pixodra.ai",15,h-10);
+        pdf.text(`Page ${i}`,w-30,h-10);
+      }
+    }).save().then(()=>box.remove());
+  },200);
 }
 </script>
 
