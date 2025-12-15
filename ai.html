@@ -18,20 +18,25 @@
 <style>
 body{
   background:radial-gradient(circle at top,#1e293b,#020617);
-  animation:pageFade .5s ease;
 }
-@keyframes pageFade{from{opacity:0}to{opacity:1}}
-
 .fade{animation:fade .3s ease}
 @keyframes fade{from{opacity:0;transform:translateY(10px)}to{opacity:1}}
-
-.glow{box-shadow:0 0 30px rgba(99,102,241,.35)}
-textarea:focus{box-shadow:0 0 25px rgba(99,102,241,.45)}
 
 .lang{padding:6px 14px;border-radius:999px;background:rgba(255,255,255,.08)}
 .lang.active{background:#6366f1}
 
-.menu{transition:.35s cubic-bezier(.4,0,.2,1)}
+.menu{transition:.35s}
+
+.dot{
+  animation:bounce 1.4s infinite both;
+}
+.dot:nth-child(2){animation-delay:.2s}
+.dot:nth-child(3){animation-delay:.4s}
+
+@keyframes bounce{
+  0%,80%,100%{transform:scale(0)}
+  40%{transform:scale(1)}
+}
 </style>
 </head>
 
@@ -42,63 +47,39 @@ textarea:focus{box-shadow:0 0 25px rgba(99,102,241,.45)}
  class="fixed inset-y-0 left-0 w-72 bg-slate-900/95 backdrop-blur
  border-r border-white/10 z-50 p-4 -translate-x-full menu flex flex-col">
 
-  <!-- USER INFO -->
   <div class="flex items-center gap-3 mb-5">
-    <div id="avatar"
-      class="w-11 h-11 rounded-full bg-indigo-600 flex items-center justify-center font-bold text-lg">
-      U
-    </div>
+    <div id="avatar" class="w-11 h-11 rounded-full bg-indigo-600 flex items-center justify-center font-bold text-lg">U</div>
     <div class="flex-1">
-      <div id="displayName" class="font-semibold leading-tight">User</div>
+      <div id="displayName" class="font-semibold">User</div>
       <div id="userEmail" class="text-xs text-gray-400 truncate"></div>
     </div>
     <div class="text-gray-400">▾</div>
   </div>
 
-  <button onclick="newChat()"
-    class="w-full text-left px-4 py-3 rounded-xl hover:bg-white/10">
-    ➕ New Chat
-  </button>
+  <button onclick="newChat()" class="px-4 py-3 rounded-xl hover:bg-white/10">➕ New Chat</button>
+  <button onclick="location.href='symposium.html'" class="px-4 py-3 rounded-xl hover:bg-white/10">🎓 Symposium Finder</button>
 
-  <button onclick="location.href='symposium.html'"
-    class="w-full text-left px-4 py-3 rounded-xl hover:bg-white/10">
-    🎓 Symposium Finder
-  </button>
-
-  <!-- PUSH ACTIONS DOWN -->
   <div class="mt-auto space-y-3">
-    <button onclick="closeMenu()"
-      class="w-full px-4 py-3 rounded-xl bg-indigo-600/30">
-      ⬅ Back to AI
-    </button>
-
-    <button onclick="logout()"
-      class="w-full text-left px-4 py-3 rounded-xl bg-red-600/30">
-      🚪 Logout
-    </button>
+    <button onclick="closeMenu()" class="px-4 py-3 rounded-xl bg-indigo-600/30">⬅ Back to AI</button>
+    <button onclick="logout()" class="px-4 py-3 rounded-xl bg-red-600/30">🚪 Logout</button>
   </div>
 </div>
 
 <!-- MAIN -->
 <div class="max-w-4xl mx-auto p-4">
 
-<!-- HEADER -->
 <div class="flex justify-between items-center mb-4">
   <button onclick="toggleMenu()" class="text-2xl">☰</button>
-  <h1 class="text-3xl font-bold">
-    PIXODRA<span class="text-indigo-400">.AI</span>
-  </h1>
+  <h1 class="text-3xl font-bold">PIXODRA<span class="text-indigo-400">.AI</span></h1>
 </div>
 
-<!-- LANGUAGE -->
-<div class="flex gap-2 mb-3 flex-wrap">
+<div class="flex gap-2 mb-3">
   <button class="lang active" onclick="setLang('english',this)">English</button>
   <button class="lang" onclick="setLang('tamil',this)">Tamil</button>
   <button class="lang" onclick="setLang('tanglish',this)">Tanglish</button>
 </div>
 
-<!-- CHAT -->
-<div class="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-4 glow">
+<div class="bg-white/5 backdrop-blur border border-white/10 rounded-3xl p-4">
   <div id="chat" class="space-y-4 mb-4 max-h-[60vh] overflow-y-auto"></div>
 
   <textarea id="input" rows="3"
@@ -106,12 +87,8 @@ textarea:focus{box-shadow:0 0 25px rgba(99,102,241,.45)}
     placeholder="Ask Pixodra anything..."></textarea>
 
   <div class="flex gap-3 mt-3">
-    <button onclick="send()" class="flex-1 bg-white text-black py-3 rounded-xl">
-      Send
-    </button>
-    <button onclick="makePDF()" class="flex-1 bg-indigo-600/30 py-3 rounded-xl">
-      Make PDF
-    </button>
+    <button onclick="send()" class="flex-1 bg-white text-black py-3 rounded-xl">Send</button>
+    <button onclick="makePDF()" class="flex-1 bg-indigo-600/30 py-3 rounded-xl">Make PDF</button>
   </div>
 </div>
 
@@ -129,11 +106,9 @@ const auth=firebase.auth();
 
 auth.onAuthStateChanged(u=>{
   if(!u) location.href="index.html";
-
-  const name = u.displayName || u.email.split("@")[0];
-  displayName.innerText = name;
+  displayName.innerText = u.displayName || u.email.split("@")[0];
   userEmail.innerText = u.email;
-  avatar.innerText = name.charAt(0).toUpperCase();
+  avatar.innerText = (u.displayName || u.email)[0].toUpperCase();
 });
 
 function toggleMenu(){menu.classList.toggle("-translate-x-full")}
@@ -142,6 +117,7 @@ function logout(){auth.signOut().then(()=>location.href="index.html")}
 function newChat(){chat.innerHTML="";history=[];closeMenu()}
 
 let lang="english",history=[],question="";
+let thinkingEl=null;
 
 function setLang(l,b){
   lang=l;
@@ -168,10 +144,7 @@ function send(){
   input.value="";
   chat.scrollTop=chat.scrollHeight;
 
-  if(t.toLowerCase()==="hi"){
-    bot("Vanakkam 😊 Ungalukku enna vaedum?");
-    return;
-  }
+  showThinking();
 
   fetch("/api/ask",{
     method:"POST",
@@ -180,9 +153,27 @@ function send(){
   })
   .then(r=>r.json())
   .then(d=>{
+    removeThinking();
     bot(d.reply);
     history.push(d.reply);
   });
+}
+
+function showThinking(){
+  thinkingEl=document.createElement("div");
+  thinkingEl.className="fade flex items-center gap-2 text-gray-400";
+  thinkingEl.innerHTML=`
+    Pixodra-AI is thinking
+    <span class="dot w-2 h-2 bg-gray-400 rounded-full"></span>
+    <span class="dot w-2 h-2 bg-gray-400 rounded-full"></span>
+    <span class="dot w-2 h-2 bg-gray-400 rounded-full"></span>
+  `;
+  chat.appendChild(thinkingEl);
+  chat.scrollTop=chat.scrollHeight;
+}
+
+function removeThinking(){
+  if(thinkingEl) thinkingEl.remove();
 }
 
 function bot(m){
@@ -192,34 +183,41 @@ function bot(m){
   chat.scrollTop=chat.scrollHeight;
 }
 
+/* PDF (unchanged, aligned) */
 function makePDF(){
-  if(!history.length) return alert("No content to export");
+  if(!history.length) return alert("No content");
 
   const box=document.createElement("div");
-  box.style.width="800px";
-  box.style.padding="30mm";
+  box.style.width="210mm";
+  box.style.padding="25mm";
   box.style.fontFamily=lang==="tamil"?"'Noto Sans Tamil'":"Times New Roman";
+  box.style.lineHeight="1.6";
   box.style.color="black";
   box.style.background="white";
+  box.style.textAlign="left";
 
   const date=new Date().toLocaleDateString();
 
   box.innerHTML=`
-    <p style="text-decoration:underline;margin-bottom:18px">
+    <div style="border-bottom:1px solid #000;padding-bottom:8px;margin-bottom:18px">
       Date: ${date} | Language: ${lang.toUpperCase()} | Version: Pixodra-ai (Beta)
-    </p>
-    <p style="margin-bottom:20px"><b>Question:</b> ${question}</p>
-    ${history.map(h=>`<p style="margin-bottom:12px">${h}</p>`).join("")}
+    </div>
+
+    <div style="margin-bottom:18px">
+      <strong>Question:</strong><br>${question}
+    </div>
+
+    ${history.map(h=>`<div style="margin-bottom:14px">${h}</div>`).join("")}
   `;
 
   document.body.appendChild(box);
 
   setTimeout(()=>{
     html2pdf().from(box).set({
-      margin:15,
+      margin:0,
       filename:"pixodraai-response.pdf",
       html2canvas:{scale:2},
-      jsPDF:{format:"a4"}
+      jsPDF:{unit:"mm",format:"a4"}
     }).toPdf().get("pdf").then(pdf=>{
       const h=pdf.internal.pageSize.height;
       const w=pdf.internal.pageSize.width;
